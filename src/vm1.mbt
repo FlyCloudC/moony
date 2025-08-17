@@ -106,14 +106,16 @@ fn VM1::eval_interp(
 ///|
 pub fn VM1::eval_func(func : @syntax.Func, env : Env) -> Value raise Cont {
   match func {
-    Lambda(parameters~, body~, is_async=false, ..) => {
-      let arg_names = []
-      for p in parameters {
-        guard p is Positional(binder~, ..) else { not_support(p.loc()) }
-        arg_names.push(binder.name)
-      }
-      Func(name=None, arg_names~, body~, saved_env=env)
-    }
+    Lambda(parameters~, body~, is_async=false, ..) =>
+      Func(
+        name=None,
+        arg_names=parameters.map_to_array(p => {
+          guard p is Positional(binder~, ..) else { not_support(p.loc()) }
+          binder.name
+        }),
+        body~,
+        saved_env=env,
+      )
     Lambda(is_async=true, loc~, ..) | Match(loc~, ..) => not_support(loc)
   }
 }
@@ -170,38 +172,24 @@ pub fn VM1::eval(
   env : Env,
 ) -> Value raise Cont {
   match expr {
-    // Const
+    // Constant
     Unit(_) => Unit
     Constant(c~, loc~) => Value::from_constant(c, loc)
-    MultilineString(elems=lines, ..) => {
-      let res = []
-      for line in lines {
-        res.push(
-          match line {
-            String(s) => s
-            Interp(i) => self.eval_interp(i, env)
-          },
-        )
-      }
-      String(res.join("\n"))
-    }
-    Interp(elems~, ..) => String(self.eval_interp(elems, env))
 
-    // Cons
-    Tuple(exprs~, ..) => {
-      let vals = []
-      for expr in exprs {
-        vals.push(self.eval(expr, env))
-      }
-      Tuple(vals)
-    }
-    Array(exprs~, ..) => {
-      let vals = []
-      for expr in exprs {
-        vals.push(self.eval(expr, env))
-      }
-      Array(vals)
-    }
+    // Interp
+    Interp(elems~, ..) => String(self.eval_interp(elems, env))
+    MultilineString(elems=lines, ..) =>
+      lines
+      .map_to_array(line => match line {
+        String(s) => s
+        Interp(i) => self.eval_interp(i, env)
+      })
+      .join("\n")
+      |> String
+
+    // Construct
+    Tuple(exprs~, ..) => Tuple(exprs.map_to_array(expr => self.eval(expr, env)))
+    Array(exprs~, ..) => Array(exprs.map_to_array(expr => self.eval(expr, env)))
     Function(func~, ..) => VM1::eval_func(func, env)
     Record(loc~, ..) => not_support_record(loc)
     RecordUpdate(loc~, ..) => not_support_record(loc)
@@ -233,23 +221,19 @@ pub fn VM1::eval(
     LetAnd(loc~, ..) => not_support(loc) // TODO
     LetFn(name~, func~, body~, ..) => {
       let name = name.name
-      let new_env = env.extend([(name, Unit)])
-      new_env[name] = VM1::eval_func(func, new_env)
+      let new_env = env.extend_new()
+      new_env.table[name] = VM1::eval_func(func, new_env)
       self.eval(body, new_env)
     }
     LetRec(bindings~, body~, ..) => {
-      let empty_bindings = []
+      let new_env = env.extend_new()
       for bind in bindings {
-        empty_bindings.push((bind.0.name, Unit))
-      }
-      let new_env = env.extend(empty_bindings)
-      for bind in bindings {
-        new_env[bind.0.name] = VM1::eval_func(bind.1, new_env)
+        new_env.table[bind.0.name] = VM1::eval_func(bind.1, new_env)
       }
       self.eval(body, new_env)
     }
 
-    // Cond
+    // Branch
     If(cond~, ifso~, ifnot~, ..) =>
       if self.eval(cond, env) is True {
         self.eval(ifso, env)
@@ -288,12 +272,12 @@ pub fn VM1::eval(
     // Call
     Apply(func~, args~, ..) => {
       guard self.eval(func, env) is Func(arg_names~, saved_env~, body~, ..)
-      let arg_vals = []
+      let new_env = saved_env.extend_new()
       for i, arg in args {
         guard arg.kind is Positional else { not_support(arg.value.loc()) }
-        arg_vals.push((arg_names[i], self.eval(arg.value, env)))
+        new_env.table[arg_names[i]] = self.eval(arg.value, env)
       }
-      self.eval(body, saved_env.extend(arg_vals))
+      self.eval(body, new_env)
     }
     DotApply(loc~, ..) => not_support(loc)
     Unary(op~, expr~, ..) => {
@@ -349,7 +333,8 @@ pub fn VM1::eval(
         Label(_) => not_support_record(loc)
         Newtype(_) => not_support(loc)
       }
-    // Conpose
+
+    // Compose
     Group(expr~, ..) => self.eval(expr, env)
     Constraint(expr~, ..) => self.eval(expr, env)
     Sequence(exprs~, ..) => {

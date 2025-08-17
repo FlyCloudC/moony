@@ -15,11 +15,8 @@ pub fn Env::extend(self : Env, binds : Array[(String, Value)]) -> Env {
 }
 
 ///|
-pub fn Env::extend_inplace(self : Env, binds : Array[(String, Value)]) -> Env {
-  for bind in binds {
-    self.table[bind.0] = bind.1
-  }
-  self
+pub fn Env::extend_new(self : Env) -> Env {
+  { parent: Some(self), table: @hashmap.new() }
 }
 
 ///|

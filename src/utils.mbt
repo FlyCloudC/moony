@@ -1,4 +1,14 @@
 ///|
+fn[A, B] @list.List::map_to_array(
+  self : Self[A],
+  f : (A) -> B raise?,
+) -> Array[B] raise? {
+  let res = []
+  self.each(x => res.push(f(x)))
+  res
+}
+
+///|
 fn[A] Array::resize_down(self : Array[A], new_len : Int) -> Unit {
   while self.length() > new_len {
     self.unsafe_pop() |> ignore
@@ -57,30 +67,25 @@ pub fn VM1::run(self : VM1, code : String) -> Value raise Cont {
   match expr {
     Let(pattern~, expr~, body~, ..) => {
       let val = self.eval(expr, env)
-      guard VM1::bind_pattern(pattern, val) is Some(binds)
-      self.eval(body, env.extend_inplace(binds))
+      guard VM1::bind_pattern(pattern, val) is Some([bind])
+      env.table[bind.0] = val
+      self.eval(body, env)
     }
     LetMut(binder~, expr~, body~, ..) => {
-      let val = self.eval(expr, env)
-      self.eval(body, env.extend_inplace([(binder.name, val)]))
+      env.table[binder.name] = self.eval(expr, env)
+      self.eval(body, env)
     }
     LetAnd(loc~, ..) => not_support(loc) // TODO
     LetFn(name~, func~, body~, ..) => {
       let name = name.name
-      let new_env = env.extend_inplace([(name, Unit)])
-      new_env[name] = VM1::eval_func(func, new_env)
-      self.eval(body, new_env)
+      env.table[name] = VM1::eval_func(func, env)
+      self.eval(body, env)
     }
     LetRec(bindings~, body~, ..) => {
-      let empty_bindings = []
       for bind in bindings {
-        empty_bindings.push((bind.0.name, Unit))
+        env.table[bind.0.name] = VM1::eval_func(bind.1, env)
       }
-      let new_env = env.extend_inplace(empty_bindings)
-      for bind in bindings {
-        new_env[bind.0.name] = VM1::eval_func(bind.1, new_env)
-      }
-      self.eval(body, new_env)
+      self.eval(body, env)
     }
     _ => self.eval(expr, self.0)
   }
