@@ -1,13 +1,15 @@
 ///|
-pub struct VM1(Env)
-
-///|
-pub fn VM1::new() -> VM1 {
-  VM1(Env::new())
+pub struct VM1 {
+  global_env : Env
 }
 
 ///|
-suberror Cont {
+pub fn VM1::new() -> VM1 {
+  { global_env: Env::new() }
+}
+
+///|
+pub suberror Cont {
   Raise(Value)
   Panic(@basic.Location, msg~ : String)
 } derive(Show)
@@ -104,7 +106,7 @@ fn VM1::eval_interp(
 }
 
 ///|
-pub fn VM1::eval_func(func : @syntax.Func, env : Env) -> Value {
+fn VM1::eval_func(func : @syntax.Func, env : Env) -> Value {
   match func {
     Lambda(parameters~, body~, is_async=false, ..) =>
       Func(
@@ -121,7 +123,7 @@ pub fn VM1::eval_func(func : @syntax.Func, env : Env) -> Value {
 }
 
 ///|
-pub fn VM1::eval_unary(op_name : String, val : Value) -> Value {
+fn VM1::eval_unary(op_name : String, val : Value) -> Value {
   match op_name {
     "-" =>
       match val {
@@ -410,5 +412,37 @@ pub fn VM1::eval(
     Is(loc~, ..) => not_support(loc)
     Hole(loc~, ..) => not_support(loc)
     StaticAssert(body~, ..) => self.eval(body, env)
+  }
+}
+
+///|
+pub fn VM1::eval_top(self : VM1, expr : @syntax.Expr) -> Value raise Cont {
+  let env = self.global_env
+  match expr {
+    Let(pattern~, expr~, body~, ..) => {
+      let val = self.eval(expr, env)
+      guard VM1::bind_pattern(pattern, val) is Some(binds)
+      for bind in binds {
+        env.define_var(bind.0, bind.1)
+      }
+      self.eval(body, env)
+    }
+    LetMut(binder~, expr~, body~, ..) => {
+      env.define_var(binder.name, self.eval(expr, env))
+      self.eval(body, env)
+    }
+    LetAnd(loc~, ..) => not_support(loc) // TODO
+    LetFn(name~, func~, body~, ..) => {
+      let name = name.name
+      env.define_var(name, VM1::eval_func(func, env))
+      self.eval(body, env)
+    }
+    LetRec(bindings~, body~, ..) => {
+      for bind in bindings {
+        env.define_var(bind.0.name, VM1::eval_func(bind.1, env))
+      }
+      self.eval(body, env)
+    }
+    _ => self.eval(expr, self.global_env)
   }
 }

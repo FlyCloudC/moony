@@ -1,6 +1,16 @@
 // test from moonbit-eval
 
 ///|
+fn VM1::run(self : VM1, code : String) -> Value raise {
+  let code = @encoding.encode(UTF8, "fn init {\n\{code}\n}")
+  let (impls, diagnostics) : _ = @parser.parse_bytes(code, parser=Handrolled)
+  guard impls is More(TopFuncDef(decl_body=DeclBody(expr~, ..), ..), tail=Empty) else {
+    fail(diagnostics.fold(init="", (acc, cur) => "\{acc}\n\{cur}"))
+  }
+  self.eval_top(expr)
+}
+
+///|
 test "basic" {
   let vm = VM1::new()
   // Int 运算测试
