@@ -10,7 +10,7 @@ pub fn VM1::new() -> VM1 {
 suberror Cont {
   Raise(Value)
   Panic(@basic.Location, msg~ : String)
-}
+} derive(Show)
 
 ///|
 fn VM1::bind_pattern(
@@ -33,18 +33,25 @@ fn VM1::bind_pattern(
         for i, pat in pats {
           guard acc(pat, vals[i]) else { break false }
         } else {
-          false
+          true
         }
       }
       Any(_) => true
+      Or(pat1~, pat2~, ..) => {
+        let len_before = binds.length()
+        acc(pat1, value) ||
+        {
+          binds.resize_down(len_before)
+          acc(pat2, value)
+        }
+      }
       Constraint(pat~, ..) => acc(pat, value)
+      Constant(c~, loc~) => Value::from_constant(c, loc) == value
       Record(loc~, ..) => not_support_record(loc)
       Array(loc~, ..) => not_support(loc)
       Constr(loc~, ..) => not_support(loc)
       Map(loc~, ..) => not_support(loc)
       Range(loc~, ..) => not_support(loc)
-      Or(loc~, ..) => not_support(loc)
-      Constant(loc~, ..) => not_support(loc)
     }
   }
 
@@ -112,9 +119,8 @@ pub fn VM1::eval_func(func : @syntax.Func, env : Env) -> Value raise Cont {
 }
 
 ///|
-pub fn VM1::eval_unary(op : @syntax.Var, val : Value) -> Value {
-  guard op.name is Ident(name~)
-  match name {
+pub fn VM1::eval_unary(op_name : String, val : Value) -> Value {
+  match op_name {
     "-" =>
       match val {
         Int(a) => Int(-a)
@@ -132,9 +138,8 @@ pub fn VM1::eval_unary(op : @syntax.Var, val : Value) -> Value {
 }
 
 ///|
-fn VM1::eval_infix(op : @syntax.Var, lhs : Value, rhs : Value) -> Value {
-  guard op.name is Ident(name~)
-  match name {
+fn VM1::eval_infix(op_name : String, lhs : Value, rhs : Value) -> Value {
+  match op_name {
     // cmp
     "==" => Value::bool(lhs == rhs)
     "!=" => Value::bool(lhs != rhs)
@@ -167,27 +172,7 @@ pub fn VM1::eval(
   match expr {
     // Const
     Unit(_) => Unit
-    Constant(c~, loc~) =>
-      match c {
-        Bool(bool) => Value::bool(bool)
-        Char(s) =>
-          Char(
-            {
-              println(s)
-              s.get_char(0).unwrap()
-            },
-          )
-        Int(s) => Int(try! @strconv.parse_int(s))
-        Double(s) => Double(try! @strconv.parse_double(s))
-        String(s) => String(s)
-        Byte(_)
-        | Bytes(_)
-        | UInt(_)
-        | Float(_)
-        | Int64(_)
-        | UInt64(_)
-        | BigInt(_) => not_support(loc)
-      }
+    Constant(c~, loc~) => Value::from_constant(c, loc)
     MultilineString(elems=lines, ..) => {
       let res = []
       for line in lines {
@@ -311,9 +296,28 @@ pub fn VM1::eval(
       self.eval(body, saved_env.extend(arg_vals))
     }
     DotApply(loc~, ..) => not_support(loc)
-    Unary(op~, expr~, ..) => VM1::eval_unary(op, self.eval(expr, env))
-    Infix(op~, lhs~, rhs~, ..) =>
-      VM1::eval_infix(op, self.eval(lhs, env), self.eval(rhs, env))
+    Unary(op~, expr~, ..) => {
+      guard op.name is Ident(name~)
+      VM1::eval_unary(name, self.eval(expr, env))
+    }
+    Infix(op~, lhs~, rhs~, ..) => {
+      guard op.name is Ident(name~)
+      match name {
+        "&&" =>
+          if self.eval(lhs, env) is True {
+            self.eval(rhs, env)
+          } else {
+            False
+          }
+        "||" =>
+          if self.eval(lhs, env) is True {
+            True
+          } else {
+            self.eval(rhs, env)
+          }
+        _ => VM1::eval_infix(name, self.eval(lhs, env), self.eval(rhs, env))
+      }
+    }
     ArrayGet(array~, index~, loc~) => {
       guard self.eval(array, env) is Array(array)
       guard self.eval(index, env) is Int(index)

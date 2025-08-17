@@ -172,3 +172,59 @@ pub impl Show for Value with output(self, logger) {
       logger.write_iter(a.iter(), prefix=name + "(", suffix=")")
   }
 }
+
+///|
+pub impl Show for Value with to_string(self) {
+  match self {
+    Unit => ().to_string()
+    True => true.to_string()
+    False => false.to_string()
+    Char(a) => a.to_string()
+    Int(a) => a.to_string()
+    Double(a) => a.to_string()
+    String(a) => a.to_string()
+    Tuple(a) => {
+      let b = StringBuilder::new()
+      (b as &Logger).write_iter(a.iter(), prefix="(", suffix=")")
+      b.to_string()
+    }
+    Array(a) => a.to_string()
+    Func(name~, ..) =>
+      match name {
+        None => "<func>"
+        Some(name) => "<func \{name}"
+      }
+    Constr(name, a) => {
+      let b = StringBuilder::new()
+      (b as &Logger).write_iter(a.iter(), prefix=name + "(", suffix=")")
+      b.to_string()
+    }
+  }
+}
+
+///|
+fn Value::from_constant(
+  c : @syntax.Constant,
+  loc : @basic.Location,
+) -> Value raise Cont {
+  match c {
+    Bool(bool) => Value::bool(bool)
+    Char(s) =>
+      Char(
+        {
+          println(s)
+          s.get_char(0).unwrap()
+        },
+      )
+    Int(s) => Int(try! @strconv.parse_int(s))
+    Double(s) => Double(try! @strconv.parse_double(s))
+    String(s) => String(s)
+    Byte(_)
+    | Bytes(_)
+    | UInt(_)
+    | Float(_)
+    | Int64(_)
+    | UInt64(_)
+    | BigInt(_) => not_support(loc)
+  }
+}
