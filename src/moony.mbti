@@ -8,6 +8,7 @@ import(
 )
 
 // Values
+fn eval(@syntax.Expr, Env) -> Value raise Cont
 
 // Errors
 pub suberror Cont {
@@ -32,7 +33,7 @@ fn Env::op_set(Self, String, Value) -> Unit
 pub struct VM1 {
   global_env : Env
 }
-fn VM1::eval(Self, @syntax.Expr, Env) -> Value raise Cont
+fn VM1::eval(Self, @syntax.Expr) -> Value raise Cont
 fn VM1::eval_top(Self, @syntax.Expr) -> Value raise Cont
 fn VM1::new() -> Self
 
