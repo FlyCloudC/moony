@@ -47,10 +47,10 @@ fn VM1::bind_pattern(
       }
       Constraint(pat~, ..) => acc(pat, value)
       Constant(c~, loc~) => Value::from_constant(c, loc) == value
-      Record(loc~, ..) => not_support_record(loc)
-      Array(loc~, ..) => not_support(loc)
-      Constr(loc~, ..) => not_support(loc)
-      Map(loc~, ..) => not_support(loc)
+      Record(loc~, ..) => not_impl_record(loc)
+      Array(loc~, ..) => not_impl(loc)
+      Constr(loc~, ..) => not_impl(loc)
+      Map(loc~, ..) => not_impl(loc)
       Range(loc~, ..) => not_support(loc)
     }
   }
@@ -104,7 +104,7 @@ fn VM1::eval_interp(
 }
 
 ///|
-pub fn VM1::eval_func(func : @syntax.Func, env : Env) -> Value raise Cont {
+pub fn VM1::eval_func(func : @syntax.Func, env : Env) -> Value {
   match func {
     Lambda(parameters~, body~, is_async=false, ..) =>
       Func(
@@ -191,8 +191,8 @@ pub fn VM1::eval(
     Tuple(exprs~, ..) => Tuple(exprs.map_to_array(expr => self.eval(expr, env)))
     Array(exprs~, ..) => Array(exprs.map_to_array(expr => self.eval(expr, env)))
     Function(func~, ..) => VM1::eval_func(func, env)
-    Record(loc~, ..) => not_support_record(loc)
-    RecordUpdate(loc~, ..) => not_support_record(loc)
+    Record(loc~, ..) => not_impl_record(loc)
+    RecordUpdate(loc~, ..) => not_impl_record(loc)
     ArraySpread(loc~, ..) => not_support(loc)
     Constr(loc~, ..) => not_support(loc)
     Map(loc~, ..) => not_support(loc)
@@ -321,16 +321,16 @@ pub fn VM1::eval(
       array[index] = self.eval(value, env)
       Unit
     }
-    ArrayGetSlice(loc~, ..) => not_support(loc)
-    ArrayAugmentedSet(loc~, ..) => not_support(loc)
-    Mutate(loc~, ..) => not_support_record(loc)
+    ArrayGetSlice(loc~, ..) => not_impl(loc)
+    ArrayAugmentedSet(loc~, ..) => not_impl(loc)
+    Mutate(loc~, ..) => not_impl_record(loc)
     Field(record~, accessor~, loc~) =>
       match accessor {
         Index(tuple_index~, ..) => {
           guard self.eval(record, env) is Tuple(tuple)
           tuple[tuple_index]
         }
-        Label(_) => not_support_record(loc)
+        Label(_) => not_impl_record(loc)
         Newtype(_) => not_support(loc)
       }
 
@@ -348,13 +348,6 @@ pub fn VM1::eval(
         }
       }
     }
-
-    // Loop Control
-    // use recursion instead
-    ForEach(loc~, ..) => not_support_control(loc)
-    For(loc~, ..) => not_support_control(loc)
-    Loop(loc~, ..) => not_support_control(loc)
-    While(loc~, ..) => not_support_control(loc)
 
     // Exception
     Raise(err_value~, ..) => raise Raise(self.eval(err_value, env))
@@ -388,10 +381,17 @@ pub fn VM1::eval(
           }
       }
 
+    // Loop
+    // use recursion instead
+    ForEach(loc~, ..) => not_support(loc)
+    For(loc~, ..) => not_support(loc)
+    Loop(loc~, ..) => not_support(loc)
+    While(loc~, ..) => not_support(loc)
+
     // Control
-    Continue(loc~, ..) => not_support_control(loc)
-    Break(loc~, ..) => not_support_control(loc)
-    Return(loc~, ..) => not_support_control(loc)
+    Continue(loc~, ..) => not_support(loc)
+    Break(loc~, ..) => not_support(loc)
+    Return(loc~, ..) => not_support(loc)
 
     // Top Define
     Method(loc~, ..) => not_support(loc)

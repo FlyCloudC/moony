@@ -33,18 +33,20 @@ fn[A] VM1::panic(loc : @basic.Location, msg~ : String = "") -> A raise Cont {
 
 ///|
 #callsite(autofill(source))
-pub fn[A] not_support(
-  loc : @basic.Location,
-  source~ : SourceLoc,
-) -> A raise Cont {
-  VM1::panic(loc, msg="not support at (\{source})")
+fn[A] not_support(loc : @basic.Location, source~ : SourceLoc) -> A {
+  println("not support at (\{source}) (\{loc})")
+  panic()
 }
 
 ///|
-fnalias not_support as not_support_record
+#callsite(autofill(source))
+fn[A] not_impl(loc : @basic.Location, source~ : SourceLoc) -> A {
+  println("not impl at (\{source}) (\{loc})")
+  panic()
+}
 
 ///|
-fnalias not_support as not_support_control
+fnalias not_impl as not_impl_record
 
 ///|
 fn parse_expr(code : String) -> @syntax.Expr raise {

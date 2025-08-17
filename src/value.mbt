@@ -203,10 +203,7 @@ pub impl Show for Value with to_string(self) {
 }
 
 ///|
-fn Value::from_constant(
-  c : @syntax.Constant,
-  loc : @basic.Location,
-) -> Value raise Cont {
+fn Value::from_constant(c : @syntax.Constant, loc : @basic.Location) -> Value {
   match c {
     Bool(bool) => Value::bool(bool)
     Char(s) =>
