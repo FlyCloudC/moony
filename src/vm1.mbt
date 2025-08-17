@@ -140,7 +140,7 @@ pub fn VM1::eval_unary(op_name : String, val : Value) -> Value {
 }
 
 ///|
-fn VM1::eval_infix(op_name : String, lhs : Value, rhs : Value) -> Value {
+fn VM1::eval_infix(op_name : @string.View, lhs : Value, rhs : Value) -> Value {
   match op_name {
     // cmp
     "==" => Value::bool(lhs == rhs)
@@ -316,13 +316,22 @@ pub fn VM1::eval(
       guard self.eval(index, env) is Int(index)
       let len = array.length()
       guard 0 <= index && index < len else {
-        VM1::panic(loc, msg="out of bound, i=\{index}, len=\{array.length()}")
+        VM1::panic(loc, msg="out of bound, i=\{index}, len=\{len}")
       }
       array[index] = self.eval(value, env)
       Unit
     }
+    ArrayAugmentedSet(op~, array~, index~, value~, loc~) => {
+      guard op.name is Ident(name=[.. name, '='])
+      guard self.eval(array, env) is Array(array)
+      guard self.eval(index, env) is Int(index)
+      guard array.get(index) is Some(v) else {
+        VM1::panic(loc, msg="out of bound, i=\{index}, len=\{array.length()}")
+      }
+      array[index] = VM1::eval_infix(name, v, self.eval(value, env))
+      Unit
+    }
     ArrayGetSlice(loc~, ..) => not_impl(loc)
-    ArrayAugmentedSet(loc~, ..) => not_impl(loc)
     Mutate(loc~, ..) => not_impl_record(loc)
     Field(record~, accessor~, loc~) =>
       match accessor {
