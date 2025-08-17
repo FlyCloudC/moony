@@ -15,6 +15,14 @@ pub fn Env::extend(self : Env, binds : Array[(String, Value)]) -> Env {
 }
 
 ///|
+pub fn Env::extend_inplace(self : Env, binds : Array[(String, Value)]) -> Env {
+  for bind in binds {
+    self.table[bind.0] = bind.1
+  }
+  self
+}
+
+///|
 pub fn Env::get(self : Env, name : String) -> Value? {
   match self.table.get(name) {
     Some(v) => Some(v)

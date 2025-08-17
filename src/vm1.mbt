@@ -1,9 +1,9 @@
 ///|
-pub struct VM1(Unit)
+pub struct VM1(Env)
 
 ///|
 pub fn VM1::new() -> VM1 {
-  VM1(())
+  VM1(Env::new())
 }
 
 ///|
