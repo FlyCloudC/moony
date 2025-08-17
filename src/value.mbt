@@ -1,0 +1,174 @@
+///|
+pub enum Value {
+  Unit
+  True
+  False
+  Char(Char)
+  Int(Int)
+  Double(Double)
+  String(String)
+  //
+  Tuple(Array[Value])
+  Array(Array[Value])
+  Func(
+    name~ : String?,
+    arg_names~ : Array[String],
+    body~ : @syntax.Expr,
+    saved_env~ : Env
+  )
+  Constr(String, Array[Value])
+}
+
+///|
+pub fn Value::bool(bool : Bool) -> Value {
+  if bool {
+    True
+  } else {
+    False
+  }
+}
+
+///|
+pub impl Eq for Value with op_equal(self, other) {
+  match (self, other) {
+    (Unit, _) => true
+    (True, True) | (False, False) => true
+    (Char(l), Char(r)) => l == r
+    (Int(l), Int(r)) => l == r
+    (Double(l), Double(r)) => l == r
+    (String(l), String(r)) => l == r
+    (Tuple(l), Tuple(r)) => l == r
+    (Array(l), Array(r)) => l == r
+    (Func(_) as l, r) => physical_equal(l, r)
+    (Constr(ln, lv), Constr(rn, rv)) => ln == rn && lv == rv
+    _ => false
+  }
+}
+
+///|
+pub impl Compare for Value with compare(self, other) {
+  match (self, other) {
+    (Unit, _) => 0
+    (True, False) => 1
+    (False, True) => -1
+    (True, True) | (False, False) => 0
+    (Char(l), Char(r)) => Compare::compare(l, r)
+    (Int(l), Int(r)) => Compare::compare(l, r)
+    (Double(l), Double(r)) => Compare::compare(l, r)
+    (String(l), String(r)) => Compare::compare(l, r)
+    (Tuple(l), Tuple(r)) => Compare::compare(l, r)
+    (Array(l), Array(r)) => Compare::compare(l, r)
+    (Func(_), _) => panic()
+    (Constr(ln, lv), Constr(rn, rv)) => Compare::compare((ln, lv), (rn, rv))
+    _ => panic()
+  }
+}
+
+///|
+pub impl Add for Value with op_add(self, other) {
+  match (self, other) {
+    (Int(l), Int(r)) => Int(l + r)
+    (Double(l), Double(r)) => Double(l + r)
+    (String(l), String(r)) => String(l + r)
+    (Array(l), Array(r)) => Array(l + r)
+    _ => panic()
+  }
+}
+
+///|
+pub impl Sub for Value with op_sub(self, other) {
+  match (self, other) {
+    (Int(l), Int(r)) => Int(l - r)
+    (Double(l), Double(r)) => Double(l - r)
+    _ => panic()
+  }
+}
+
+///|
+pub impl Mul for Value with op_mul(self, other) {
+  match (self, other) {
+    (Int(l), Int(r)) => Int(l * r)
+    (Double(l), Double(r)) => Double(l * r)
+    _ => panic()
+  }
+}
+
+///|
+pub impl Div for Value with op_div(self, other) {
+  match (self, other) {
+    (Int(l), Int(r)) => Int(l / r)
+    (Double(l), Double(r)) => Double(l / r)
+    _ => panic()
+  }
+}
+
+///|
+pub impl Mod for Value with op_mod(self, other) {
+  match (self, other) {
+    (Int(l), Int(r)) => Int(l % r)
+    (Double(l), Double(r)) => Double(l % r)
+    _ => panic()
+  }
+}
+
+///|
+pub impl BitAnd for Value with land(self, other) {
+  match (self, other) {
+    (Int(l), Int(r)) => Int(l & r)
+    _ => panic()
+  }
+}
+
+///|
+pub impl BitOr for Value with lor(self, other) {
+  match (self, other) {
+    (Int(l), Int(r)) => Int(l | r)
+    _ => panic()
+  }
+}
+
+///|
+pub impl BitXOr for Value with lxor(self, other) {
+  match (self, other) {
+    (Int(l), Int(r)) => Int(l ^ r)
+    _ => panic()
+  }
+}
+
+///|
+pub impl Shl for Value with op_shl(self, other) {
+  match (self, other) {
+    (Int(l), r) => Int(l << r)
+    _ => panic()
+  }
+}
+
+///|
+pub impl Shr for Value with op_shr(self, other) {
+  match (self, other) {
+    (Int(l), r) => Int(l >> r)
+    _ => panic()
+  }
+}
+
+///|
+pub impl Show for Value with output(self, logger) {
+  match self {
+    Unit => ().output(logger)
+    True => true.output(logger)
+    False => false.output(logger)
+    Char(a) => a.output(logger)
+    Int(a) => a.output(logger)
+    Double(a) => a.output(logger)
+    String(a) => a.output(logger)
+    Tuple(a) => logger.write_iter(a.iter(), prefix="(", suffix=")")
+    Array(a) => a.output(logger)
+    Func(name~, ..) =>
+      match name {
+        None => logger.write_string("<func>")
+        Some(name) => logger.write_string("<func \{name}")
+      }
+    Constr(name, a) =>
+      logger.write_iter(a.iter(), prefix=name + "(", suffix=")")
+  }
+}
