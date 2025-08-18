@@ -31,9 +31,19 @@ fn VM1::bind_pattern(
         acc(pat, value)
       }
       Tuple(pats~, ..) => {
-        guard value is Tuple(vals) else { false }
+        guard value is Tuple(vals)
         for i, pat in pats {
           guard acc(pat, vals[i]) else { break false }
+        } else {
+          true
+        }
+      }
+      Constr(constr~, args~, ..) => {
+        guard value is Enum(name, vals)
+        guard constr.name.name == name else { false }
+        guard args is Some(args) else { true }
+        for i, pat in args {
+          guard acc(pat.pat, vals[i]) else { break false }
         } else {
           true
         }
@@ -51,7 +61,6 @@ fn VM1::bind_pattern(
       Constant(c~, loc~) => Value::from_constant(c, loc) == value
       Record(loc~, ..) => not_impl_record(loc)
       Array(loc~, ..) => not_impl(loc)
-      Constr(loc~, ..) => not_impl(loc)
       Map(loc~, ..) => not_impl(loc)
       Range(loc~, ..) => not_support(loc)
     }
@@ -190,7 +199,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     Record(loc~, ..) => not_impl_record(loc)
     RecordUpdate(loc~, ..) => not_impl_record(loc)
     ArraySpread(loc~, ..) => not_support(loc)
-    Constr(loc~, ..) => not_support(loc)
+    Constr(constr~, ..) => Enum(constr.name.name, [])
     Map(loc~, ..) => not_support(loc)
     As(loc~, ..) => not_support(loc)
 
@@ -266,6 +275,12 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       }
 
     // Call
+    Apply(func=Constr(constr~, ..), args~, ..) =>
+      args.map_to_array(arg => {
+        guard arg.kind is Positional else { not_support(arg.value.loc()) }
+        eval(arg.value, env)
+      })
+      |> Enum(constr.name.name, _)
     Apply(func~, args~, ..) => {
       guard eval(func, env) is Func(arg_names~, saved_env~, body~, ..)
       let new_env = saved_env.extend_new()
@@ -365,8 +380,8 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     TryOperator(body~, kind~, loc~, ..) =>
       match kind {
         Question =>
-          Constr("Ok", [eval(body, env)]) catch {
-            Raise(exc) => Constr("Err", [exc])
+          Enum("Ok", [eval(body, env)]) catch {
+            Raise(exc) => Enum("Err", [exc])
             Panic(_) as e => raise e
           }
         Exclamation =>

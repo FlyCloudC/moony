@@ -443,3 +443,12 @@ test "array" {
 //   inspect(vm.run("a"), content="{ value: 2 }")
 //   inspect(vm.run("a.value"), content="2")
 // }
+
+///|
+test "enum" {
+  let vm = VM1::new()
+  ignore(vm.run("let a = Some(8)"))
+  inspect(vm.run("match a { Some(x) => x \n None => 0 }"), content="8")
+  ignore(vm.run("let b = None"))
+  inspect(vm.run("match b { Some(x) => x \n None => 0 }"), content="0")
+}

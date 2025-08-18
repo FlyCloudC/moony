@@ -16,7 +16,7 @@ pub enum Value {
     body~ : @syntax.Expr,
     saved_env~ : Env
   )
-  Constr(String, Array[Value])
+  Enum(String, Array[Value])
 }
 
 ///|
@@ -40,7 +40,7 @@ pub impl Eq for Value with op_equal(self, other) {
     (Tuple(l), Tuple(r)) => l == r
     (Array(l), Array(r)) => l == r
     (Func(_) as l, r) => physical_equal(l, r)
-    (Constr(ln, lv), Constr(rn, rv)) => ln == rn && lv == rv
+    (Enum(ln, lv), Enum(rn, rv)) => ln == rn && lv == rv
     _ => false
   }
 }
@@ -59,7 +59,7 @@ pub impl Compare for Value with compare(self, other) {
     (Tuple(l), Tuple(r)) => Compare::compare(l, r)
     (Array(l), Array(r)) => Compare::compare(l, r)
     (Func(_), _) => panic()
-    (Constr(ln, lv), Constr(rn, rv)) => Compare::compare((ln, lv), (rn, rv))
+    (Enum(ln, lv), Enum(rn, rv)) => Compare::compare((ln, lv), (rn, rv))
     _ => panic()
   }
 }
@@ -168,8 +168,7 @@ pub impl Show for Value with output(self, logger) {
         None => logger.write_string("<func>")
         Some(name) => logger.write_string("<func \{name}")
       }
-    Constr(name, a) =>
-      logger.write_iter(a.iter(), prefix=name + "(", suffix=")")
+    Enum(name, a) => logger.write_iter(a.iter(), prefix=name + "(", suffix=")")
   }
 }
 
@@ -194,7 +193,7 @@ pub impl Show for Value with to_string(self) {
         None => "<func>"
         Some(name) => "<func \{name}"
       }
-    Constr(name, a) => {
+    Enum(name, a) => {
       let b = StringBuilder::new()
       (b as &Logger).write_iter(a.iter(), prefix=name + "(", suffix=")")
       b.to_string()
