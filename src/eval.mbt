@@ -58,11 +58,24 @@ fn VM1::bind_pattern(
         }
       }
       Constraint(pat~, ..) => acc(pat, value)
-      Constant(c~, loc~) => Value::from_constant(c, loc) == value
+      Constant(c~, loc~) => c.to_value(loc) == value
+      Range(lhs~, rhs~, inclusive~, ..) =>
+        (match lhs {
+          Constant(c~, loc~) => c.to_value(loc) <= value
+          _ => true // lhs is Any
+        }) &&
+        (match rhs {
+          Constant(c~, loc~) =>
+            if inclusive {
+              value <= c.to_value(loc)
+            } else {
+              value < c.to_value(loc)
+            }
+          _ => true // rhs is Any
+        })
       Record(loc~, ..) => not_impl_record(loc)
       Array(loc~, ..) => not_impl(loc)
       Map(loc~, ..) => not_impl(loc)
-      Range(loc~, ..) => not_support(loc)
     }
   }
 
@@ -179,7 +192,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
   match expr {
     // Constant
     Unit(_) => Unit
-    Constant(c~, loc~) => Value::from_constant(c, loc)
+    Constant(c~, loc~) => c.to_value(loc)
 
     // Interp
     Interp(elems~, ..) => String(eval_interp(elems, env))

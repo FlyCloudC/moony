@@ -202,16 +202,10 @@ pub impl Show for Value with to_string(self) {
 }
 
 ///|
-fn Value::from_constant(c : @syntax.Constant, loc : @basic.Location) -> Value {
-  match c {
+fn @syntax.Constant::to_value(self : Self, loc : @basic.Location) -> Value {
+  match self {
     Bool(bool) => Value::bool(bool)
-    Char(s) =>
-      Char(
-        {
-          println(s)
-          s.get_char(0).unwrap()
-        },
-      )
+    Char(s) => Char(s.get_char(0).unwrap())
     Int(s) => Int(try! @strconv.parse_int(s))
     Double(s) => Double(try! @strconv.parse_double(s))
     String(s) => String(s)

@@ -289,42 +289,40 @@ test "match" {
   inspect(vm.run("match 5 { 1 => 10; 2 => 20; _ => 30 }"), content="30")
 }
 
-// TODO
-// ///|
-// test "match range" {
-//   let vm = VM1::new()
-//   inspect(
-//     vm.run(
-//       (
-//         #|const Zero = 0
-//         #|fn sign(x : Int) -> Int {
-//         #|  match x {
-//         #|    _..<Zero => -1
-//         #|    Zero => 0
-//         #|    1..<_ => 1
-//         #|  }
-//         #|}
-//         #|
-//         #|fn classify_char(c : Char) -> String {
-//         #|  match c {
-//         #|    'a'..='z' => "lowercase"
-//         #|    'A'..='Z' => "uppercase"
-//         #|    '0'..='9' => "digit"
-//         #|    _ => "other"
-//         #|  }
-//         #|}
-//       ),
-//     ),
-//     content="()",
-//   )
-//   inspect(vm.run("sign(10)"), content="1")
-//   inspect(vm.run("sign(-10)"), content="-1")
-//   inspect(vm.run("sign(0)"), content="0")
-//   inspect(vm.run("classify_char('a')"), content="lowercase")
-//   inspect(vm.run("classify_char('A')"), content="uppercase")
-//   inspect(vm.run("classify_char('0')"), content="digit")
-//   inspect(vm.run("classify_char('!')"), content="other")
-// }
+///|
+test "match range" {
+  let vm = VM1::new()
+  inspect(
+    vm.run(
+      (
+        #|fn sign(x : Int) -> Int {
+        #|  match x {
+        #|    _..<0 => -1
+        #|    0 => 0
+        #|    1..<_ => 1
+        #|  }
+        #|}
+        #|
+        #|fn classify_char(c : Char) -> String {
+        #|  match c {
+        #|    'a'..='z' => "lowercase"
+        #|    'A'..='Z' => "uppercase"
+        #|    '0'..='9' => "digit"
+        #|    _ => "other"
+        #|  }
+        #|}
+      ),
+    ),
+    content="()",
+  )
+  inspect(vm.run("sign(10)"), content="1")
+  inspect(vm.run("sign(-10)"), content="-1")
+  inspect(vm.run("sign(0)"), content="0")
+  inspect(vm.run("classify_char('a')"), content="lowercase")
+  inspect(vm.run("classify_char('A')"), content="uppercase")
+  inspect(vm.run("classify_char('0')"), content="digit")
+  inspect(vm.run("classify_char('!')"), content="other")
+}
 
 // // TODO
 
