@@ -217,27 +217,22 @@ test "fn add" {
   inspect(vm.run("add(1,2)"), content="3")
 }
 
-// TODO
-// ///|
-// test "struct" {
-//   let vm = VM1::new()
-//   inspect(
-//     vm.run(
-//       (
-//         #|struct S { 
-//         #|  a: Int
-//         #|  b: Int
-//         #|}
-//         #|fn S::sum(self: S) -> Int {
-//         #|  self.a + self.b
-//         #|}
-//       ),
-//     ),
-//     content="()",
-//   )
-//   inspect(vm.run("let s = { a: 23, b: 32 }"), content="()")
-//   inspect(vm.run("s.sum()"), content="55")
-// }
+///|
+test "struct" {
+  let vm = VM1::new()
+  inspect(
+    vm.run(
+      (
+        #|fn sum(self: S) -> Int {
+        #|  self.a + self.b
+        #|}
+      ),
+    ),
+    content="()",
+  )
+  inspect(vm.run("let s = { a: 23, b: 32 }"), content="()")
+  inspect(vm.run("sum(s)"), content="55")
+}
 
 ///|
 test "match" {
@@ -270,17 +265,16 @@ test "match" {
   // inspect(vm.run("match [1, 2, 3] { [a, b, c] => a + b + c }"), content="6")
   // inspect(vm.run("match [5, 10] { [x, y] => x * y }"), content="50")
 
-  // TODO
-  // // Record模式匹配
-  // inspect(vm.run("match { x: 10, y: 20 } { { x, y } => x + y }"), content="30")
-  // inspect(
-  //   vm.run("match { name: \"Alice\", age: 25 } { { name, .. } => name }"),
-  //   content="Alice",
-  // )
-  // inspect(
-  //   vm.run("match { name: \"Alice\", age: 25 } { { age, .. } => age }"),
-  //   content="25",
-  // )
+  // Record模式匹配
+  inspect(vm.run("match { x: 10, y: 20 } { { x, y } => x + y }"), content="30")
+  inspect(
+    vm.run("match { name: \"Alice\", age: 25 } { { name, .. } => name }"),
+    content="Alice",
+  )
+  inspect(
+    vm.run("match { name: \"Alice\", age: 25 } { { age, .. } => age }"),
+    content="25",
+  )
   // 嵌套模式匹配
   inspect(vm.run("match (1, (2, 3)) { (a, (b, c)) => a + b + c }"), content="6")
 
@@ -355,31 +349,18 @@ test "match range" {
 //   inspect(vm.run("test_constr(5)"), content="other")
 // }
 
-// TODO
-// ///|
-// test "mutate" {
-//   let vm = VM1::new()
-//   inspect(
-//     vm.run(
-//       (
-//         #|struct Point {
-//         #|  mut x : Int
-//         #|  mut y : Int
-//         #|}
-//       ),
-//       top=true,
-//     ),
-//     content="()",
-//   )
-//   inspect(vm.run("let p = { x: 1, y: 2 }"), content="()")
-//   inspect(vm.run("p.x"), content="1")
-//   inspect(vm.run("p.y"), content="2")
-//   inspect(vm.run("p.x = 3"), content="()")
-//   inspect(vm.run("p.y = 4"), content="()")
-//   inspect(vm.run("p.x"), content="3")
-//   inspect(vm.run("p.y"), content="4")
-//   inspect(vm.run("p"), content="{ x: 3, y: 4 }")
-// }
+///|
+test "mutate" {
+  let vm = VM1::new()
+  inspect(vm.run("let p = { x: 1, y: 2 }"), content="()")
+  inspect(vm.run("p.x"), content="1")
+  inspect(vm.run("p.y"), content="2")
+  inspect(vm.run("p.x = 3"), content="()")
+  inspect(vm.run("p.y = 4"), content="()")
+  inspect(vm.run("p.x"), content="3")
+  inspect(vm.run("p.y"), content="4")
+  inspect(vm.run("p"), content="{x: 3, y: 4}")
+}
 
 ///|
 test "tuple" {
@@ -413,34 +394,22 @@ test "array" {
   inspect(vm.run("b"), content="[1, 4, 3]")
 }
 
-// TODO
-// ///|
-// test "ref" {
-//   let vm = VM1::new()
-//   inspect(
-//     vm.run(
-//       (
-//         #|struct RefInt {
-//         #|  mut value: Int
-//         #|}
-//       ),
-//       top=true,
-//     ),
-//     content="()",
-//   )
-//   inspect(
-//     vm.run(
-//       (
-//         #|let a = { value: 1 }
-//         #|let b = a
-//         #|b.value = 2
-//       ),
-//     ),
-//     content="()",
-//   )
-//   inspect(vm.run("a"), content="{ value: 2 }")
-//   inspect(vm.run("a.value"), content="2")
-// }
+///|
+test "ref" {
+  let vm = VM1::new()
+  inspect(
+    vm.run(
+      (
+        #|let a = { value: 1 }
+        #|let b = a
+        #|b.value = 2
+      ),
+    ),
+    content="()",
+  )
+  inspect(vm.run("a"), content="{value: 2}")
+  inspect(vm.run("a.value"), content="2")
+}
 
 ///|
 test "enum" {

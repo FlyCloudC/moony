@@ -44,6 +44,3 @@ fn[A] not_impl(loc : @basic.Location, source~ : SourceLoc) -> A {
   println("not impl at (\{source}) (\{loc})")
   panic()
 }
-
-///|
-fnalias not_impl as not_impl_record

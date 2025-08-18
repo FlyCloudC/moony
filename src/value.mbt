@@ -17,6 +17,7 @@ pub enum Value {
     saved_env~ : Env
   )
   Enum(String, Array[Value])
+  Struct(Map[String, Value])
 }
 
 ///|
@@ -166,37 +167,43 @@ pub impl Show for Value with output(self, logger) {
     Func(name~, ..) =>
       match name {
         None => logger.write_string("<func>")
-        Some(name) => logger.write_string("<func \{name}")
+        Some(name) => logger.write_string("<func \{name}>")
       }
     Enum(name, a) => logger.write_iter(a.iter(), prefix=name + "(", suffix=")")
+    Struct(a) => {
+      logger.write_char('{')
+      let mut first = true
+      for x in a {
+        if first {
+          first = false
+        } else {
+          logger.write_string(", ")
+        }
+        logger..write_string(x.0)..write_string(": ")..write_object(x.1)
+      }
+      logger.write_char('}')
+    }
   }
 }
 
 ///|
 pub impl Show for Value with to_string(self) {
   match self {
-    Unit => ().to_string()
-    True => true.to_string()
-    False => false.to_string()
-    Char(a) => a.to_string()
-    Int(a) => a.to_string()
-    Double(a) => a.to_string()
-    String(a) => a.to_string()
-    Tuple(a) => {
-      let b = StringBuilder::new()
-      (b as &Logger).write_iter(a.iter(), prefix="(", suffix=")")
-      b.to_string()
-    }
-    Array(a) => a.to_string()
-    Func(name~, ..) =>
-      match name {
-        None => "<func>"
-        Some(name) => "<func \{name}"
-      }
-    Enum(name, a) => {
-      let b = StringBuilder::new()
-      (b as &Logger).write_iter(a.iter(), prefix=name + "(", suffix=")")
-      b.to_string()
+    Char(a) => Show::to_string(a)
+    Int(a) => Show::to_string(a)
+    String(a) => Show::to_string(a)
+    Unit
+    | True
+    | False
+    | Double(_)
+    | Tuple(_)
+    | Array(_)
+    | Func(_)
+    | Enum(_)
+    | Struct(_) => { // default impl for Show::to_string
+      let logger = StringBuilder::new()
+      self.output(logger)
+      logger.to_string()
     }
   }
 }

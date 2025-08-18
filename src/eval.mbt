@@ -48,6 +48,13 @@ fn VM1::bind_pattern(
           true
         }
       }
+      Record(fields~, ..) => {
+        guard value is Struct(vals)
+        fields.all(pat => {
+          let val = vals.get(pat.label.name).unwrap()
+          acc(pat.pattern, val)
+        })
+      }
       Any(_) => true
       Or(pat1~, pat2~, ..) => {
         let len_before = binds.length()
@@ -73,7 +80,6 @@ fn VM1::bind_pattern(
             }
           _ => true // rhs is Any
         })
-      Record(loc~, ..) => not_impl_record(loc)
       Array(loc~, ..) => not_impl(loc)
       Map(loc~, ..) => not_impl(loc)
     }
@@ -112,17 +118,14 @@ fn eval_interp(
   interp : @list.List[@syntax.InterpElem],
   env : Env,
 ) -> String raise Cont {
-  let res = []
-  for e in interp {
-    let s = match e {
-      Literal(repr~, ..) => repr
-      Expr(expr~, ..) => eval(expr, env).to_string()
-      // TODO
-      Source(_) => panic()
-    }
-    res.push(s)
-  }
-  res.join("")
+  interp
+  .map_to_array(e => match e {
+    Literal(repr~, ..) => repr
+    Expr(expr~, ..) => eval(expr, env).to_string()
+    // TODO
+    Source(_) => panic()
+  })
+  .join("")
 }
 
 ///|
@@ -209,8 +212,16 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     Tuple(exprs~, ..) => Tuple(exprs.map_to_array(expr => eval(expr, env)))
     Array(exprs~, ..) => Array(exprs.map_to_array(expr => eval(expr, env)))
     Function(func~, ..) => VM1::eval_func(func, env)
-    Record(loc~, ..) => not_impl_record(loc)
-    RecordUpdate(loc~, ..) => not_impl_record(loc)
+    Record(fields~, ..) =>
+      fields.map(x => (x.label.name, eval(x.expr, env))).iter()
+      |> Map::from_iter
+      |> Struct
+    RecordUpdate(fields~, record~, ..) => {
+      guard eval(record, env) is Struct(record)
+      let val = record.copy()
+      fields.each(x => val[x.label.name] = eval(x.expr, env))
+      Struct(val)
+    }
     ArraySpread(loc~, ..) => not_support(loc)
     Constr(constr~, ..) => Enum(constr.name.name, [])
     Map(loc~, ..) => not_support(loc)
@@ -346,14 +357,23 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       Unit
     }
     ArrayGetSlice(loc~, ..) => not_impl(loc)
-    Mutate(loc~, ..) => not_impl_record(loc)
+    Mutate(record~, accessor~, field~, augmented_by~, loc~) => {
+      guard augmented_by is None else { not_support(loc) }
+      guard accessor is Label(label)
+      guard eval(record, env) is Struct(val)
+      val[label.name] = eval(field, env)
+      Unit
+    }
     Field(record~, accessor~, loc~) =>
       match accessor {
         Index(tuple_index~, ..) => {
           guard eval(record, env) is Tuple(tuple)
           tuple[tuple_index]
         }
-        Label(_) => not_impl_record(loc)
+        Label(label) => {
+          guard eval(record, env) is Struct(record)
+          record.get(label.name).unwrap()
+        }
         Newtype(_) => not_support(loc)
       }
 
