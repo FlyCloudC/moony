@@ -2,13 +2,13 @@
 package "FlyCloudC/moony"
 
 import(
-  "moonbitlang/core/hashmap"
+  "FlyCloudC/moony/enviroment"
   "moonbitlang/parser/basic"
   "moonbitlang/parser/syntax"
 )
 
 // Values
-fn eval(@syntax.Expr, Env) -> Value raise Cont
+fn eval(@syntax.Expr, @enviroment.T[String, Value]) -> Value raise Cont
 
 // Errors
 pub suberror Cont {
@@ -18,20 +18,8 @@ pub suberror Cont {
 impl Show for Cont
 
 // Types and methods
-pub struct Env {
-  parent : Env?
-  table : @hashmap.T[String, Value]
-}
-fn Env::define_var(Self, String, Value) -> Unit
-fn Env::extend(Self, Array[(String, Value)]) -> Self
-fn Env::extend_new(Self) -> Self
-fn Env::get(Self, String) -> Value?
-fn Env::new() -> Self
-fn Env::op_get(Self, String) -> Value
-fn Env::op_set(Self, String, Value) -> Unit
-
 pub struct VM1 {
-  global_env : Env
+  global_env : @enviroment.T[String, Value]
 }
 fn VM1::eval(Self, @syntax.Expr) -> Value raise Cont
 fn VM1::eval_top(Self, @syntax.Expr) -> Value raise Cont
@@ -47,8 +35,9 @@ pub enum Value {
   String(String)
   Tuple(Array[Value])
   Array(Array[Value])
-  Func(name~ : String?, arg_names~ : Array[String], body~ : @syntax.Expr, saved_env~ : Env)
-  Constr(String, Array[Value])
+  Func(name~ : String?, arg_names~ : Array[String], body~ : @syntax.Expr, saved_env~ : @enviroment.T[String, Value])
+  Enum(String, Array[Value])
+  Struct(Map[String, Value])
 }
 fn Value::bool(Bool) -> Self
 impl Add for Value

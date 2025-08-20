@@ -2,7 +2,10 @@
   "import": [
     "moonbitlang/parser/syntax",
     "moonbitlang/parser/basic",
-    "moonbitlang/parser",
-    "moonbitlang/x/encoding"
+    "FlyCloudC/moony/enviroment"
+  ],
+  "test-import":[
+    "moonbitlang/x/encoding",
+    "moonbitlang/parser"
   ]
 }

@@ -1,0 +1,21 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "FlyCloudC/moony/enviroment"
+
+// Values
+
+// Errors
+
+// Types and methods
+type T[K, V]
+fn[K : Eq + Hash, V] T::define_var(Self[K, V], K, V) -> Unit
+fn[K : Eq + Hash, V] T::extend(Self[K, V], Array[(K, V)]) -> Self[K, V]
+fn[K, V] T::extend_new(Self[K, V]) -> Self[K, V]
+fn[K : Eq + Hash, V] T::get(Self[K, V], K) -> V?
+fn[K, V] T::new() -> Self[K, V]
+fn[K : Eq + Hash, V] T::op_get(Self[K, V], K) -> V
+fn[K : Eq + Hash, V] T::op_set(Self[K, V], K, V) -> Unit
+
+// Type aliases
+
+// Traits
+

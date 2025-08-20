@@ -1,26 +1,29 @@
 ///|
-pub struct Env {
-  parent : Env?
-  table : @hashmap.T[String, Value]
+struct T[K, V] {
+  parent : T[K, V]?
+  table : @hashmap.T[K, V]
 }
 
 ///|
-pub fn Env::new() -> Env {
+pub fn[K, V] T::new() -> T[K, V] {
   { parent: None, table: @hashmap.new() }
 }
 
 ///|
-pub fn Env::extend(self : Env, binds : Array[(String, Value)]) -> Env {
+pub fn[K : Eq + Hash, V] T::extend(
+  self : T[K, V],
+  binds : Array[(K, V)],
+) -> T[K, V] {
   { parent: Some(self), table: @hashmap.from_array(binds) }
 }
 
 ///|
-pub fn Env::extend_new(self : Env) -> Env {
+pub fn[K, V] T::extend_new(self : T[K, V]) -> T[K, V] {
   { parent: Some(self), table: @hashmap.new() }
 }
 
 ///|
-pub fn Env::get(self : Env, name : String) -> Value? {
+pub fn[K : Eq + Hash, V] T::get(self : T[K, V], name : K) -> V? {
   match self.table.get(name) {
     Some(v) => Some(v)
     None =>
@@ -32,7 +35,7 @@ pub fn Env::get(self : Env, name : String) -> Value? {
 }
 
 ///|
-pub fn Env::op_get(self : Env, name : String) -> Value {
+pub fn[K : Eq + Hash, V] T::op_get(self : T[K, V], name : K) -> V {
   match self.table.get(name) {
     Some(v) => v
     None => self.parent.unwrap()[name]
@@ -40,7 +43,7 @@ pub fn Env::op_get(self : Env, name : String) -> Value {
 }
 
 ///|
-pub fn Env::op_set(self : Env, name : String, value : Value) -> Unit {
+pub fn[K : Eq + Hash, V] T::op_set(self : T[K, V], name : K, value : V) -> Unit {
   if self.table.contains(name) {
     self.table[name] = value
   } else {
@@ -49,6 +52,10 @@ pub fn Env::op_set(self : Env, name : String, value : Value) -> Unit {
 }
 
 ///|
-pub fn Env::define_var(self : Env, name : String, value : Value) -> Unit {
+pub fn[K : Eq + Hash, V] T::define_var(
+  self : T[K, V],
+  name : K,
+  value : V,
+) -> Unit {
   self.table[name] = value
 }

@@ -1,4 +1,7 @@
 ///|
+typealias @enviroment.T[String, Value] as Env
+
+///|
 pub struct VM1 {
   global_env : Env
 }
@@ -251,13 +254,13 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     LetFn(name~, func~, body~, ..) => {
       let name = name.name
       let new_env = env.extend_new()
-      new_env.table[name] = VM1::eval_func(func, new_env)
+      new_env.define_var(name, VM1::eval_func(func, new_env))
       eval(body, new_env)
     }
     LetRec(bindings~, body~, ..) => {
       let new_env = env.extend_new()
       for bind in bindings {
-        new_env.table[bind.0.name] = VM1::eval_func(bind.1, new_env)
+        new_env.define_var(bind.0.name, VM1::eval_func(bind.1, new_env))
       }
       eval(body, new_env)
     }
@@ -310,7 +313,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       let new_env = saved_env.extend_new()
       for i, arg in args {
         guard arg.kind is Positional else { not_support(arg.value.loc()) }
-        new_env.table[arg_names[i]] = eval(arg.value, env)
+        new_env.define_var(arg_names[i], eval(arg.value, env))
       }
       eval(body, new_env)
     }
