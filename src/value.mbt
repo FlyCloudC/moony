@@ -169,6 +169,7 @@ pub impl Show for Value with output(self, logger) {
         None => logger.write_string("<func>")
         Some(name) => logger.write_string("<func \{name}>")
       }
+    Enum(name, []) => logger.write_string(name)
     Enum(name, a) => logger.write_iter(a.iter(), prefix=name + "(", suffix=")")
     Struct(a) => {
       logger.write_char('{')
