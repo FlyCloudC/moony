@@ -1,122 +1,4 @@
 ///|
-typealias @enviroment.T[String, Value] as Env
-
-///|
-pub struct VM1 {
-  global_env : Env
-}
-
-///|
-pub fn VM1::new() -> VM1 {
-  { global_env: Env::new() }
-}
-
-///|
-pub suberror Cont {
-  Raise(Value)
-  Panic(@basic.Location, msg~ : String)
-} derive(Show)
-
-///|
-fn VM1::bind_pattern(
-  pattern : @syntax.Pattern,
-  value : Value,
-) -> Array[(String, Value)]? raise Cont {
-  let binds = []
-  fn acc(pat : @syntax.Pattern, value : Value) -> Bool raise Cont {
-    match pat {
-      Var(binder) => {
-        binds.push((binder.name, value))
-        true
-      }
-      Alias(pat~, alias_~, ..) => {
-        binds.push((alias_.name, value))
-        acc(pat, value)
-      }
-      Tuple(pats~, ..) => {
-        guard value is Tuple(vals)
-        for i, pat in pats {
-          guard acc(pat, vals[i]) else { break false }
-        } else {
-          true
-        }
-      }
-      Constr(constr~, args~, ..) => {
-        guard value is Enum(name, vals)
-        guard constr.name.name == name else { false }
-        guard args is Some(args) else { true }
-        for i, pat in args {
-          guard acc(pat.pat, vals[i]) else { break false }
-        } else {
-          true
-        }
-      }
-      Record(fields~, ..) => {
-        guard value is Struct(vals)
-        fields.all(pat => {
-          let val = vals.get(pat.label.name).unwrap()
-          acc(pat.pattern, val)
-        })
-      }
-      Any(_) => true
-      Or(pat1~, pat2~, ..) => {
-        let len_before = binds.length()
-        acc(pat1, value) ||
-        {
-          binds.resize_down(len_before)
-          acc(pat2, value)
-        }
-      }
-      Constraint(pat~, ..) => acc(pat, value)
-      Constant(c~, loc~) => c.to_value(loc) == value
-      Range(lhs~, rhs~, inclusive~, ..) =>
-        (match lhs {
-          Constant(c~, loc~) => c.to_value(loc) <= value
-          _ => true // lhs is Any
-        }) &&
-        (match rhs {
-          Constant(c~, loc~) =>
-            if inclusive {
-              value <= c.to_value(loc)
-            } else {
-              value < c.to_value(loc)
-            }
-          _ => true // rhs is Any
-        })
-      Array(loc~, ..) => not_impl(loc)
-      Map(loc~, ..) => not_impl(loc)
-    }
-  }
-
-  if acc(pattern, value) {
-    Some(binds)
-  } else {
-    None
-  }
-}
-
-///|
-fn match_(
-  cases : @list.List[@syntax.Case],
-  val : Value,
-  env : Env,
-  loc : @basic.Location,
-) -> (@syntax.Expr, Env) raise Cont {
-  for case in cases {
-    if VM1::bind_pattern(case.pattern, val) is Some(binds) {
-      let new_env = env.extend(binds)
-      if case.guard_ is Some(guard_) && !(eval(guard_, new_env) is True) {
-        continue
-      } else {
-        break (case.body, new_env)
-      }
-    }
-  } else {
-    VM1::panic(loc, msg="match fail")
-  }
-}
-
-///|
 fn eval_interp(
   interp : @list.List[@syntax.InterpElem],
   env : Env,
@@ -132,7 +14,7 @@ fn eval_interp(
 }
 
 ///|
-fn VM1::eval_func(func : @syntax.Func, env : Env) -> Value {
+fn eval_func(func : @syntax.Func, env : Env) -> Value {
   match func {
     Lambda(parameters~, body~, is_async=false, ..) =>
       Func(
@@ -149,7 +31,7 @@ fn VM1::eval_func(func : @syntax.Func, env : Env) -> Value {
 }
 
 ///|
-fn VM1::eval_unary(op_name : String, val : Value) -> Value {
+fn eval_unary(op_name : String, val : Value) -> Value {
   match op_name {
     "-" =>
       match val {
@@ -168,7 +50,7 @@ fn VM1::eval_unary(op_name : String, val : Value) -> Value {
 }
 
 ///|
-fn VM1::eval_infix(op_name : @string.View, lhs : Value, rhs : Value) -> Value {
+fn eval_infix(op_name : @string.View, lhs : Value, rhs : Value) -> Value {
   match op_name {
     // cmp
     "==" => Value::bool(lhs == rhs)
@@ -214,7 +96,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     // Construct
     Tuple(exprs~, ..) => Tuple(exprs.map_to_array(expr => eval(expr, env)))
     Array(exprs~, ..) => Array(exprs.map_to_array(expr => eval(expr, env)))
-    Function(func~, ..) => VM1::eval_func(func, env)
+    Function(func~, ..) => eval_func(func, env)
     Record(fields~, ..) =>
       fields.map(x => (x.label.name, eval(x.expr, env))).iter()
       |> Map::from_iter
@@ -243,7 +125,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     }
     Let(pattern~, expr~, body~, ..) => {
       let val = eval(expr, env)
-      guard VM1::bind_pattern(pattern, val) is Some(binds)
+      guard bind_pattern(pattern, val) is Some(binds)
       eval(body, env.extend(binds))
     }
     LetMut(binder~, expr~, body~, ..) => {
@@ -254,13 +136,13 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     LetFn(name~, func~, body~, ..) => {
       let name = name.name
       let new_env = env.extend_new()
-      new_env.define_var(name, VM1::eval_func(func, new_env))
+      new_env.define_var(name, eval_func(func, new_env))
       eval(body, new_env)
     }
     LetRec(bindings~, body~, ..) => {
       let new_env = env.extend_new()
       for bind in bindings {
-        new_env.define_var(bind.0.name, VM1::eval_func(bind.1, new_env))
+        new_env.define_var(bind.0.name, eval_func(bind.1, new_env))
       }
       eval(body, new_env)
     }
@@ -320,14 +202,14 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     DotApply(loc~, ..) => not_support(loc)
     Unary(op~, expr~, ..) => {
       guard op.name is Ident(name~)
-      VM1::eval_unary(name, eval(expr, env))
+      eval_unary(name, eval(expr, env))
     }
     Infix(op~, lhs~, rhs~, ..) => {
       guard op.name is Ident(name~)
       match name {
         "&&" => if eval(lhs, env) is True { eval(rhs, env) } else { False }
         "||" => if eval(lhs, env) is True { True } else { eval(rhs, env) }
-        _ => VM1::eval_infix(name, eval(lhs, env), eval(rhs, env))
+        _ => eval_infix(name, eval(lhs, env), eval(rhs, env))
       }
     }
     ArrayGet(array~, index~, loc~) => {
@@ -356,7 +238,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       guard array.get(index) is Some(v) else {
         VM1::panic(loc, msg="out of bound, i=\{index}, len=\{array.length()}")
       }
-      array[index] = VM1::eval_infix(name, v, eval(value, env))
+      array[index] = eval_infix(name, v, eval(value, env))
       Unit
     }
     ArrayGetSlice(loc~, ..) => not_impl(loc)
@@ -447,42 +329,5 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     Is(loc~, ..) => not_support(loc)
     Hole(loc~, ..) => not_support(loc)
     StaticAssert(body~, ..) => eval(body, env)
-  }
-}
-
-///|
-pub fn VM1::eval(self : VM1, expr : @syntax.Expr) -> Value raise Cont {
-  eval(expr, self.global_env)
-}
-
-///|
-pub fn VM1::eval_top(self : VM1, expr : @syntax.Expr) -> Value raise Cont {
-  let env = self.global_env
-  match expr {
-    Let(pattern~, expr~, body~, ..) => {
-      let val = eval(expr, env)
-      guard VM1::bind_pattern(pattern, val) is Some(binds)
-      for bind in binds {
-        env.define_var(bind.0, bind.1)
-      }
-      self.eval_top(body)
-    }
-    LetMut(binder~, expr~, body~, ..) => {
-      env.define_var(binder.name, eval(expr, env))
-      self.eval_top(body)
-    }
-    LetAnd(loc~, ..) => not_support(loc) // TODO
-    LetFn(name~, func~, body~, ..) => {
-      let name = name.name
-      env.define_var(name, VM1::eval_func(func, env))
-      self.eval_top(body)
-    }
-    LetRec(bindings~, body~, ..) => {
-      for bind in bindings {
-        env.define_var(bind.0.name, VM1::eval_func(bind.1, env))
-      }
-      self.eval_top(body)
-    }
-    _ => self.eval(expr)
   }
 }

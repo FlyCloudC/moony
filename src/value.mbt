@@ -1,26 +1,4 @@
 ///|
-pub enum Value {
-  Unit
-  True
-  False
-  Char(Char)
-  Int(Int)
-  Double(Double)
-  String(String)
-  //
-  Tuple(Array[Value])
-  Array(Array[Value])
-  Func(
-    name~ : String?,
-    arg_names~ : Array[String],
-    body~ : @syntax.Expr,
-    saved_env~ : Env
-  )
-  Enum(String, Array[Value])
-  Struct(Map[String, Value])
-}
-
-///|
 pub fn Value::bool(bool : Bool) -> Value {
   if bool {
     True
