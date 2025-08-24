@@ -221,7 +221,17 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       let index = eval(index, env)
       array[index] = eval_infix(name, array[index], eval(value, env))
     }
-    ArrayGetSlice(loc~, ..) => not_impl(loc)
+    ArrayGetSlice(array~, start_index~, end_index~, ..) =>
+      eval(array, env).op_as_view(
+        start?=match start_index {
+          Some(s) => Some(eval(s, env))
+          None => None
+        },
+        end?=match end_index {
+          Some(s) => Some(eval(s, env))
+          None => None
+        },
+      )
     Mutate(record~, accessor~, field~, augmented_by~, loc~) => {
       guard augmented_by is None else { not_support(loc) }
       guard accessor is Label(label)

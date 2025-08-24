@@ -102,6 +102,18 @@ test "value array" {
 }
 
 ///|
+test "value arrayview" {
+  run("let a = [1, 2, 3]", content="()")
+  run("let b = a[1:]", content="()")
+  run("b", content="[2, 3]")
+  run("b[0]", content="2")
+  run("b[1] = 0", content="()")
+  run("a[1] = -1", content="()")
+  run("a", content="[1, -1, 0]")
+  run("b", content="[-1, 0]")
+}
+
+///|
 test "lambda" {
   run("(x => x * 2)(3)", content="6")
   run("((x, y) => x + y)(1, 2)", content="3")

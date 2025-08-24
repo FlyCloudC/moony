@@ -10,6 +10,7 @@ pub enum Value {
   //
   Tuple(Array[Value])
   Array(Array[Value])
+  ArrayView(ArrayView[Value])
   Func(
     name~ : String?,
     arg_names~ : Array[String],

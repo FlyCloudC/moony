@@ -142,6 +142,7 @@ pub impl Show for Value with output(self, logger) {
     String(a) => a.output(logger)
     Tuple(a) => logger.write_iter(a.iter(), prefix="(", suffix=")")
     Array(a) => a.output(logger)
+    ArrayView(a) => a.output(logger)
     Func(name~, ..) =>
       match name {
         None => logger.write_string("<func>")
@@ -177,6 +178,7 @@ pub impl Show for Value with to_string(self) {
     | Double(_)
     | Tuple(_)
     | Array(_)
+    | ArrayView(_)
     | Func(_)
     | Enum(_)
     | Struct(_) => { // default impl for Show::to_string
@@ -192,6 +194,7 @@ pub fn Value::op_get(self : Value, index : Value) -> Value {
   guard index is Int(i)
   match self {
     Array(a) => a[i]
+    ArrayView(a) => a[i]
     _ => panic()
   }
 }
@@ -201,9 +204,29 @@ pub fn Value::op_set(self : Value, index : Value, v : Value) -> Value {
   guard index is Int(i)
   match self {
     Array(a) => a[i] = v
+    ArrayView(a) => a[i] = v
     _ => panic()
   }
   Unit
+}
+
+///|
+pub fn Value::op_as_view(
+  self : Value,
+  start~ : Value = Int(0),
+  end? : Value,
+) -> Value {
+  guard start is Int(start)
+  let end = match end {
+    None => None
+    Some(Int(i)) => Some(i)
+    _ => panic()
+  }
+  match self {
+    Array(a) => ArrayView(a.op_as_view(start~, end?))
+    ArrayView(a) => ArrayView(a.op_as_view(start~, end?))
+    _ => panic()
+  }
 }
 
 ///|
