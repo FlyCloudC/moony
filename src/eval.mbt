@@ -212,34 +212,14 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
         _ => eval_infix(name, eval(lhs, env), eval(rhs, env))
       }
     }
-    ArrayGet(array~, index~, loc~) => {
-      guard eval(array, env) is Array(array)
-      guard eval(index, env) is Int(index)
-      match array.get(index) {
-        None =>
-          VM1::panic(loc, msg="out of bound, i=\{index}, len=\{array.length()}")
-        Some(v) => v
-      }
-    }
-    ArraySet(array~, index~, value~, loc~) => {
-      guard eval(array, env) is Array(array)
-      guard eval(index, env) is Int(index)
-      let len = array.length()
-      guard 0 <= index && index < len else {
-        VM1::panic(loc, msg="out of bound, i=\{index}, len=\{len}")
-      }
-      array[index] = eval(value, env)
-      Unit
-    }
-    ArrayAugmentedSet(op~, array~, index~, value~, loc~) => {
+    ArrayGet(array~, index~, ..) => eval(array, env)[eval(index, env)]
+    ArraySet(array~, index~, value~, ..) =>
+      eval(array, env)[eval(index, env)] = eval(value, env)
+    ArrayAugmentedSet(op~, array~, index~, value~, ..) => {
       guard op.name is Ident(name=[.. name, '='])
-      guard eval(array, env) is Array(array)
-      guard eval(index, env) is Int(index)
-      guard array.get(index) is Some(v) else {
-        VM1::panic(loc, msg="out of bound, i=\{index}, len=\{array.length()}")
-      }
-      array[index] = eval_infix(name, v, eval(value, env))
-      Unit
+      let array = eval(array, env)
+      let index = eval(index, env)
+      array[index] = eval_infix(name, array[index], eval(value, env))
     }
     ArrayGetSlice(loc~, ..) => not_impl(loc)
     Mutate(record~, accessor~, field~, augmented_by~, loc~) => {

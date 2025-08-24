@@ -188,6 +188,25 @@ pub impl Show for Value with to_string(self) {
 }
 
 ///|
+pub fn Value::op_get(self : Value, index : Value) -> Value {
+  guard index is Int(i)
+  match self {
+    Array(a) => a[i]
+    _ => panic()
+  }
+}
+
+///|
+pub fn Value::op_set(self : Value, index : Value, v : Value) -> Value {
+  guard index is Int(i)
+  match self {
+    Array(a) => a[i] = v
+    _ => panic()
+  }
+  Unit
+}
+
+///|
 fn @syntax.Constant::to_value(self : Self, loc : @basic.Location) -> Value {
   match self {
     Bool(bool) => Value::bool(bool)
