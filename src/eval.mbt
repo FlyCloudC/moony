@@ -223,7 +223,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     ArraySet(array~, index~, value~, ..) =>
       eval(array, env)[eval(index, env)] = eval(value, env)
     ArrayAugmentedSet(op~, array~, index~, value~, ..) => {
-      guard op.name is Ident(name=[.. name, '='])
+      guard op.name is Ident(name~)
       let array = eval(array, env)
       let index = eval(index, env)
       array[index] = eval_infix(name, array[index], eval(value, env))

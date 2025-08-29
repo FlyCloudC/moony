@@ -97,6 +97,8 @@ test "value array" {
   run("let a = [1, 2]", content="()")
   run("a[0]", content="1")
   run("a", content="[1, 2]")
+  run("a[0] -= 2", content="()")
+  run("a", content="[-1, 2]")
   run("let b = a", content="()")
   run("a[0] = 2", content="()")
   run("a", content="[2, 2]")
