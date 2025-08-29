@@ -5,9 +5,9 @@ let vm : VM1 = VM1::new()
 #callsite(autofill(args_loc, loc))
 fn run(
   code : String,
+  content? : String = "",
   loc~ : SourceLoc,
   args_loc~ : ArgsLoc,
-  content? : String = "",
 ) -> Unit raise {
   let (impls, diagnostics) : _ = @parser.parse_string(
     "fn init {\n\{code}\n}",
@@ -247,4 +247,19 @@ test "match range" {
   run("classify_char('A')", content="uppercase")
   run("classify_char('0')", content="digit")
   run("classify_char('!')", content="other")
+}
+
+///|
+test "defer" {
+  run("let mut x = 0", content="()")
+  run(
+    (
+      #|{
+      #|  defer { x = 1 }
+      #|  x
+      #|}
+    ),
+    content="0",
+  )
+  run("x", content="1")
 }

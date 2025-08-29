@@ -186,7 +186,10 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
           raise e
         }
       } noraise {
-        _ => eval(expr, env)
+        val => {
+          eval(expr, env) |> ignore
+          val
+        }
       }
 
     // Call
