@@ -185,13 +185,15 @@ test "match tuple" {
   run("match (1, (2, 3)) { (a, (b, c)) => a + b + c }", content="6")
 }
 
-// TODO
-// ///|
-// test "match array" {
-//   run("match [1, 2, 3] { [a, b, c] => a }", content="1")
-//   run("match [1, 2, 3] { [a, b, c] => a + b + c }", content="6")
-//   run("match [5, 10] { [x, y] => x * y }", content="50")
-// }
+///|
+test "match array" {
+  run("match [1, 2, 3] { [a, b, _] => a }", content="1")
+  run("match [1, 2, 3] { [a, ..] => a }", content="1")
+  run(
+    "match [1, 2, 3, 4, 5] { [a, b, .. c, d, e] => (a, b, c, d, e) }",
+    content="(1, 2, [3], 4, 5)",
+  )
+}
 
 ///|
 test "match struct" {

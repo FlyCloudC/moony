@@ -64,7 +64,40 @@ fn bind_pattern(
             }
           _ => true // rhs is Any
         })
-      Array(loc~, ..) => not_impl(loc)
+      Array(pats~, loc~) => {
+        guard value[:] is ArrayView(vals) else { not_support(loc) }
+        match pats {
+          Closed(pats) =>
+            for i, pat in pats {
+              guard pat is Pattern(pat) else { not_support(loc) }
+              guard acc(pat, vals[i]) else { break false }
+            } else {
+              true
+            }
+          Open(pats_l, pats_r, pat_mid) => {
+            let len_l = pats_l.length()
+            let len_r = pats_r.length()
+            guard len_l + len_r <= vals.length() else { false }
+            for i, pat in pats_l {
+              guard pat is Pattern(pat) else { not_support(loc) }
+              guard acc(pat, vals[i]) else { return false }
+            }
+            let len_val = vals.length()
+            let val_mid = ArrayView(vals[len_l:len_val - len_r])
+            match pat_mid {
+              Binder(bind) => binds.push((bind.name, val_mid))
+              Underscore | NoBinder => ()
+              BinderAs(_) => not_support(loc)
+            }
+            let vals_r = vals[len_val - len_r:]
+            for i, pat in pats_r {
+              guard pat is Pattern(pat) else { not_support(loc) }
+              guard acc(pat, vals_r[i]) else { return false }
+            }
+            true
+          }
+        }
+      }
       Map(loc~, ..) => not_impl(loc)
     }
   }
