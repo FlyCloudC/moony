@@ -206,6 +206,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       eval(body, new_env)
     }
     DotApply(loc~, ..) => not_support(loc~)
+    Method(loc~, ..) => not_support(loc~)
     Unary(op~, expr~, ..) => {
       guard op.name is Ident(name~)
       eval_unary(name, eval(expr, env))
@@ -261,16 +262,9 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     // Compose
     Group(expr~, ..) => eval(expr, env)
     Constraint(expr~, ..) => eval(expr, env)
-    Sequence(exprs~, ..) => {
-      guard exprs is More(expr, tail~) else { Unit }
-      loop (expr, tail) {
-        (expr, Empty) => eval(expr, env)
-        (expr, More(expr_, tail~)) => {
-          // guard eval(expr, env) is Unit
-          eval(expr, env) |> ignore
-          continue (expr_, tail)
-        }
-      }
+    Sequence(exprs~, last_expr~, ..) => {
+      exprs.each(expr => eval(expr, env) |> ignore)
+      eval(last_expr, env)
     }
 
     // Exception
@@ -316,9 +310,6 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     Continue(loc~, ..) => not_support(loc~)
     Break(loc~, ..) => not_support(loc~)
     Return(loc~, ..) => not_support(loc~)
-
-    // Top Define
-    Method(loc~, ..) => not_support(loc~)
 
     // Other
     Pipe(loc~, ..) => not_support(loc~)
