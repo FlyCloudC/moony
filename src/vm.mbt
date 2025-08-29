@@ -24,7 +24,12 @@ pub fn VM1::eval_top(self : VM1, expr : @syntax.Expr) -> Value raise Cont {
       env.define_var(binder.name, eval(expr, env))
       self.eval_top(body)
     }
-    LetAnd(loc~, ..) => not_support(loc) // TODO
+    LetAnd(bindings~, body~, ..) => {
+      for bind in bindings {
+        env.define_var(bind.0.name, eval_func(bind.2, env))
+      }
+      self.eval_top(body)
+    }
     LetFn(name~, func~, body~, ..) => {
       let name = name.name
       env.define_var(name, eval_func(func, env))

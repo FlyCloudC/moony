@@ -132,7 +132,13 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       let val = eval(expr, env)
       eval(body, env.extend([(binder.name, val)]))
     }
-    LetAnd(loc~, ..) => not_support(loc) // TODO
+    LetAnd(bindings~, body~, ..) => {
+      let new_env = env.extend_new()
+      for bind in bindings {
+        new_env.define_var(bind.0.name, eval_func(bind.2, new_env))
+      }
+      eval(body, new_env)
+    }
     LetFn(name~, func~, body~, ..) => {
       let name = name.name
       let new_env = env.extend_new()
