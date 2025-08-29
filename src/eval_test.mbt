@@ -7,10 +7,12 @@ fn run(
   code : String,
   loc~ : SourceLoc,
   args_loc~ : ArgsLoc,
-  content~ : String = "",
+  content? : String = "",
 ) -> Unit raise {
-  let code = @encoding.encode(UTF8, "fn init {\n\{code}\n}")
-  let (impls, diagnostics) : _ = @parser.parse_bytes(code, parser=Handrolled)
+  let (impls, diagnostics) : _ = @parser.parse_string(
+    "fn init {\n\{code}\n}",
+    parser=Handrolled,
+  )
   guard impls is More(TopFuncDef(decl_body=DeclBody(expr~, ..), ..), tail=Empty) else {
     fail(diagnostics.iter().map(_.to_string()).join("\n"))
   }

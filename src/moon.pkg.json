@@ -5,7 +5,6 @@
     "FlyCloudC/moony/enviroment"
   ],
   "test-import":[
-    "moonbitlang/x/encoding",
     "moonbitlang/parser"
   ]
 }
