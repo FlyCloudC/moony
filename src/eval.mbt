@@ -20,13 +20,13 @@ fn eval_func(func : @syntax.Func, env : Env) -> Value {
       Func(
         name=None,
         arg_names=parameters.map_to_array(p => {
-          guard p is Positional(binder~, ..) else { not_support(p.loc()) }
+          guard p is Positional(binder~, ..) else { not_support(loc=p.loc()) }
           binder.name
         }),
         body~,
         saved_env=env,
       )
-    Lambda(is_async=true, loc~, ..) | Match(loc~, ..) => not_support(loc)
+    Lambda(is_async=true, loc~, ..) | Match(loc~, ..) => not_support(loc~)
   }
 }
 
@@ -107,10 +107,10 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       fields.each(x => val[x.label.name] = eval(x.expr, env))
       Struct(val)
     }
-    ArraySpread(loc~, ..) => not_support(loc)
+    ArraySpread(loc~, ..) => not_support(loc~)
     Constr(constr~, ..) => Enum(constr.name.name, [])
-    Map(loc~, ..) => not_support(loc)
-    As(loc~, ..) => not_support(loc)
+    Map(loc~, ..) => not_support(loc~)
+    As(loc~, ..) => not_support(loc~)
 
     // Bind
     Ident(id~, ..) => {
@@ -118,8 +118,8 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       env[name]
     }
     Assign(var_~, expr~, augmented_by~, loc~) => {
-      guard augmented_by is None else { not_support(loc) }
-      guard var_.name is Ident(name~) else { not_support(loc) }
+      guard augmented_by is None else { not_support(loc~) }
+      guard var_.name is Ident(name~) else { not_support(loc~) }
       env[name] = eval(expr, env)
       Unit
     }
@@ -192,7 +192,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     // Call
     Apply(func=Constr(constr~, ..), args~, ..) =>
       args.map_to_array(arg => {
-        guard arg.kind is Positional else { not_support(arg.value.loc()) }
+        guard arg.kind is Positional else { not_support(loc=arg.value.loc()) }
         eval(arg.value, env)
       })
       |> Enum(constr.name.name, _)
@@ -200,12 +200,12 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       guard eval(func, env) is Func(arg_names~, saved_env~, body~, ..)
       let new_env = saved_env.extend_new()
       for i, arg in args {
-        guard arg.kind is Positional else { not_support(arg.value.loc()) }
+        guard arg.kind is Positional else { not_support(loc=arg.value.loc()) }
         new_env.define_var(arg_names[i], eval(arg.value, env))
       }
       eval(body, new_env)
     }
-    DotApply(loc~, ..) => not_support(loc)
+    DotApply(loc~, ..) => not_support(loc~)
     Unary(op~, expr~, ..) => {
       guard op.name is Ident(name~)
       eval_unary(name, eval(expr, env))
@@ -239,7 +239,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
         },
       )
     Mutate(record~, accessor~, field~, augmented_by~, loc~) => {
-      guard augmented_by is None else { not_support(loc) }
+      guard augmented_by is None else { not_support(loc~) }
       guard accessor is Label(label)
       guard eval(record, env) is Struct(val)
       val[label.name] = eval(field, env)
@@ -255,7 +255,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
           guard eval(record, env) is Struct(record)
           record.get(label.name).unwrap()
         }
-        Newtype(_) => not_support(loc)
+        Newtype(_) => not_support(loc~)
       }
 
     // Compose
@@ -276,7 +276,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     // Exception
     Raise(err_value~, ..) => raise Raise(eval(err_value, env))
     Try(body~, catch_~, catch_all~, catch_loc~, try_else~, else_loc~, loc~, ..) => {
-      guard catch_all else { not_support(loc) }
+      guard catch_all else { not_support(loc~) }
       try eval(body, env) catch {
         Raise(exc) => {
           let (body, new_env) = match_(catch_, exc, env, catch_loc)
@@ -307,23 +307,23 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
 
     // Loop
     // use recursion instead
-    ForEach(loc~, ..) => not_support(loc)
-    For(loc~, ..) => not_support(loc)
-    Loop(loc~, ..) => not_support(loc)
-    While(loc~, ..) => not_support(loc)
+    ForEach(loc~, ..) => not_support(loc~)
+    For(loc~, ..) => not_support(loc~)
+    Loop(loc~, ..) => not_support(loc~)
+    While(loc~, ..) => not_support(loc~)
 
     // Control
-    Continue(loc~, ..) => not_support(loc)
-    Break(loc~, ..) => not_support(loc)
-    Return(loc~, ..) => not_support(loc)
+    Continue(loc~, ..) => not_support(loc~)
+    Break(loc~, ..) => not_support(loc~)
+    Return(loc~, ..) => not_support(loc~)
 
     // Top Define
-    Method(loc~, ..) => not_support(loc)
+    Method(loc~, ..) => not_support(loc~)
 
     // Other
-    Pipe(loc~, ..) => not_support(loc)
-    Is(loc~, ..) => not_support(loc)
-    Hole(loc~, ..) => not_support(loc)
+    Pipe(loc~, ..) => not_support(loc~)
+    Is(loc~, ..) => not_support(loc~)
+    Hole(loc~, ..) => not_support(loc~)
     StaticAssert(body~, ..) => eval(body, env)
   }
 }

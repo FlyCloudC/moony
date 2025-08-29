@@ -243,6 +243,6 @@ fn @syntax.Constant::to_value(self : Self, loc : @basic.Location) -> Value {
     | Float(_)
     | Int64(_)
     | UInt64(_)
-    | BigInt(_) => not_support(loc)
+    | BigInt(_) => not_support(loc~)
   }
 }
