@@ -18,8 +18,10 @@ pub impl Eq for Value with op_equal(self, other) {
     (String(l), String(r)) => l == r
     (Tuple(l), Tuple(r)) => l == r
     (Array(l), Array(r)) => l == r
+    (ArrayView(l), ArrayView(r)) => l == r
     (Func(_) as l, r) => physical_equal(l, r)
     (Enum(ln, lv), Enum(rn, rv)) => ln == rn && lv == rv
+    (Struct(l), Struct(r)) => l == r
     _ => false
   }
 }
@@ -37,8 +39,10 @@ pub impl Compare for Value with compare(self, other) {
     (String(l), String(r)) => Compare::compare(l, r)
     (Tuple(l), Tuple(r)) => Compare::compare(l, r)
     (Array(l), Array(r)) => Compare::compare(l, r)
+    (ArrayView(l), ArrayView(r)) => Compare::compare(l, r)
     (Func(_), _) => panic()
     (Enum(ln, lv), Enum(rn, rv)) => Compare::compare((ln, lv), (rn, rv))
+    (Struct(_), Struct(_)) => not_support()
     _ => panic()
   }
 }
@@ -225,6 +229,7 @@ pub fn Value::op_as_view(
   match self {
     Array(a) => ArrayView(a.op_as_view(start~, end?))
     ArrayView(a) => ArrayView(a.op_as_view(start~, end?))
+    String(_) => not_support()
     _ => panic()
   }
 }
