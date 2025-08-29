@@ -35,11 +35,15 @@ pub enum Value {
   String(String)
   Tuple(Array[Value])
   Array(Array[Value])
+  ArrayView(ArrayView[Value])
   Func(name~ : String?, arg_names~ : Array[String], body~ : @syntax.Expr, saved_env~ : @enviroment.T[String, Value])
   Enum(String, Array[Value])
   Struct(Map[String, Value])
 }
 fn Value::bool(Bool) -> Self
+fn Value::op_as_view(Self, start? : Self, end? : Self) -> Self
+fn Value::op_get(Self, Self) -> Self
+fn Value::op_set(Self, Self, Self) -> Self
 impl Add for Value
 impl BitAnd for Value
 impl BitOr for Value

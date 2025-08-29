@@ -27,7 +27,7 @@ fn @syntax.Parameter::loc(self : @syntax.Parameter) -> @basic.Location {
 }
 
 ///|
-fn[A] VM1::panic(loc : @basic.Location, msg~ : String = "") -> A raise Cont {
+fn[A] VM1::panic(loc : @basic.Location, msg? : String = "") -> A raise Cont {
   raise Panic(loc, msg~)
 }
 

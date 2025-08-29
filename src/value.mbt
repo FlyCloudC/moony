@@ -213,7 +213,7 @@ pub fn Value::op_set(self : Value, index : Value, v : Value) -> Value {
 ///|
 pub fn Value::op_as_view(
   self : Value,
-  start~ : Value = Int(0),
+  start? : Value = Int(0),
   end? : Value,
 ) -> Value {
   guard start is Int(start)
