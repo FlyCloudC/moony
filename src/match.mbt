@@ -67,13 +67,15 @@ fn bind_pattern(
       Array(pats~, loc~) => {
         guard value[:] is ArrayView(vals) else { not_support(loc~) }
         match pats {
-          Closed(pats) =>
+          Closed(pats) => {
+            guard pats.length() == vals.length() else { false }
             for i, pat in pats {
               guard pat is Pattern(pat) else { not_support(loc~) }
               guard acc(pat, vals[i]) else { break false }
             } else {
               true
             }
+          }
           Open(pats_l, pats_r, pat_mid) => {
             let len_l = pats_l.length()
             let len_r = pats_r.length()
