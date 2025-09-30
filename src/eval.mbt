@@ -232,7 +232,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       array[index] = eval_infix(name, array[index], eval(value, env))
     }
     ArrayGetSlice(array~, start_index~, end_index~, ..) =>
-      eval(array, env).op_as_view(
+      eval(array, env).sub(
         start?=match start_index {
           Some(s) => Some(eval(s, env))
           None => None

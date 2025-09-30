@@ -1,7 +1,7 @@
 ///|
 struct T[K, V] {
   parent : T[K, V]?
-  table : @hashmap.T[K, V]
+  table : @hashmap.HashMap[K, V]
 }
 
 ///|
@@ -35,7 +35,8 @@ pub fn[K : Eq + Hash, V] T::get(self : T[K, V], name : K) -> V? {
 }
 
 ///|
-pub fn[K : Eq + Hash, V] T::op_get(self : T[K, V], name : K) -> V {
+#alias("_[_]")
+pub fn[K : Eq + Hash, V] T::at(self : T[K, V], name : K) -> V {
   match self.table.get(name) {
     Some(v) => v
     None => self.parent.unwrap()[name]
@@ -43,7 +44,8 @@ pub fn[K : Eq + Hash, V] T::op_get(self : T[K, V], name : K) -> V {
 }
 
 ///|
-pub fn[K : Eq + Hash, V] T::op_set(self : T[K, V], name : K, value : V) -> Unit {
+#alias("_[_]=_")
+pub fn[K : Eq + Hash, V] T::set(self : T[K, V], name : K, value : V) -> Unit {
   if self.table.contains(name) {
     self.table[name] = value
   } else {

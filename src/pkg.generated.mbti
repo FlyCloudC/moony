@@ -40,10 +40,13 @@ pub enum Value {
   Enum(String, Array[Value])
   Struct(Map[String, Value])
 }
+#alias("_[_]")
+fn Value::at(Self, Self) -> Self
 fn Value::bool(Bool) -> Self
-fn Value::op_as_view(Self, start? : Self, end? : Self) -> Self
-fn Value::op_get(Self, Self) -> Self
-fn Value::op_set(Self, Self, Self) -> Self
+#alias("_[_]=_")
+fn Value::set(Self, Self, Self) -> Self
+#alias("_[_:_]")
+fn Value::sub(Self, start? : Self, end? : Self) -> Self
 impl Add for Value
 impl BitAnd for Value
 impl BitOr for Value

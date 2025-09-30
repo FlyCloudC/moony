@@ -8,7 +8,7 @@ pub fn Value::bool(bool : Bool) -> Value {
 }
 
 ///|
-pub impl Eq for Value with op_equal(self, other) {
+pub impl Eq for Value with equal(self, other) {
   match (self, other) {
     (Unit, _) => true
     (True, True) | (False, False) => true
@@ -48,7 +48,7 @@ pub impl Compare for Value with compare(self, other) {
 }
 
 ///|
-pub impl Add for Value with op_add(self, other) {
+pub impl Add for Value with add(self, other) {
   match (self, other) {
     (Int(l), Int(r)) => Int(l + r)
     (Double(l), Double(r)) => Double(l + r)
@@ -59,7 +59,7 @@ pub impl Add for Value with op_add(self, other) {
 }
 
 ///|
-pub impl Sub for Value with op_sub(self, other) {
+pub impl Sub for Value with sub(self, other) {
   match (self, other) {
     (Int(l), Int(r)) => Int(l - r)
     (Double(l), Double(r)) => Double(l - r)
@@ -68,7 +68,7 @@ pub impl Sub for Value with op_sub(self, other) {
 }
 
 ///|
-pub impl Mul for Value with op_mul(self, other) {
+pub impl Mul for Value with mul(self, other) {
   match (self, other) {
     (Int(l), Int(r)) => Int(l * r)
     (Double(l), Double(r)) => Double(l * r)
@@ -77,7 +77,7 @@ pub impl Mul for Value with op_mul(self, other) {
 }
 
 ///|
-pub impl Div for Value with op_div(self, other) {
+pub impl Div for Value with div(self, other) {
   match (self, other) {
     (Int(l), Int(r)) => Int(l / r)
     (Double(l), Double(r)) => Double(l / r)
@@ -86,7 +86,7 @@ pub impl Div for Value with op_div(self, other) {
 }
 
 ///|
-pub impl Mod for Value with op_mod(self, other) {
+pub impl Mod for Value with mod(self, other) {
   match (self, other) {
     (Int(l), Int(r)) => Int(l % r)
     (Double(l), Double(r)) => Double(l % r)
@@ -119,7 +119,7 @@ pub impl BitXOr for Value with lxor(self, other) {
 }
 
 ///|
-pub impl Shl for Value with op_shl(self, other) {
+pub impl Shl for Value with shl(self, other) {
   match (self, other) {
     (Int(l), r) => Int(l << r)
     _ => panic()
@@ -127,7 +127,7 @@ pub impl Shl for Value with op_shl(self, other) {
 }
 
 ///|
-pub impl Shr for Value with op_shr(self, other) {
+pub impl Shr for Value with shr(self, other) {
   match (self, other) {
     (Int(l), r) => Int(l >> r)
     _ => panic()
@@ -194,7 +194,8 @@ pub impl Show for Value with to_string(self) {
 }
 
 ///|
-pub fn Value::op_get(self : Value, index : Value) -> Value {
+#alias("_[_]")
+pub fn Value::at(self : Value, index : Value) -> Value {
   guard index is Int(i)
   match self {
     Array(a) => a[i]
@@ -204,22 +205,19 @@ pub fn Value::op_get(self : Value, index : Value) -> Value {
 }
 
 ///|
-pub fn Value::op_set(self : Value, index : Value, v : Value) -> Value {
+#alias("_[_]=_")
+pub fn Value::set(self : Value, index : Value, v : Value) -> Value {
   guard index is Int(i)
   match self {
     Array(a) => a[i] = v
-    ArrayView(a) => a[i] = v
     _ => panic()
   }
   Unit
 }
 
 ///|
-pub fn Value::op_as_view(
-  self : Value,
-  start? : Value = Int(0),
-  end? : Value,
-) -> Value {
+#alias("_[_:_]")
+pub fn Value::sub(self : Value, start? : Value = Int(0), end? : Value) -> Value {
   guard start is Int(start)
   let end = match end {
     None => None
@@ -227,8 +225,8 @@ pub fn Value::op_as_view(
     _ => panic()
   }
   match self {
-    Array(a) => ArrayView(a.op_as_view(start~, end?))
-    ArrayView(a) => ArrayView(a.op_as_view(start~, end?))
+    Array(a) => ArrayView(a.sub(start~, end?))
+    ArrayView(a) => ArrayView(a.sub(start~, end?))
     String(_) => not_support()
     _ => panic()
   }
