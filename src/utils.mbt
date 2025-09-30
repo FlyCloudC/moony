@@ -16,17 +16,6 @@ fn[A] Array::resize_down(self : Array[A], new_len : Int) -> Unit {
 }
 
 ///|
-fn @syntax.Parameter::loc(self : @syntax.Parameter) -> @basic.Location {
-  match self {
-    Optional(binder~, ..)
-    | Labelled(binder~, ..)
-    | Positional(binder~, ..)
-    | QuestionOptional(binder~, ..) => binder.loc
-    DiscardPositional(loc~, ..) => loc
-  }
-}
-
-///|
 fn[A] VM1::panic(loc : @basic.Location, msg? : String = "") -> A raise Cont {
   raise Panic(loc, msg~)
 }

@@ -101,6 +101,7 @@ fn bind_pattern(
         }
       }
       Map(loc~, ..) => not_support(loc~)
+      SpecialConstr(loc~, ..) => not_support(loc~)
     }
   }
 
