@@ -236,7 +236,7 @@ pub fn Value::sub(self : Value, start? : Value = Int(0), end? : Value) -> Value 
 fn @syntax.Constant::to_value(self : Self, loc : @basic.Location) -> Value {
   match self {
     Bool(bool) => Value::bool(bool)
-    Char(s) => Char(s.get_char(0).unwrap())
+    Char(s) => Char(s.unsafe_charcode_at(0).unsafe_to_char())
     Int(s) => Int(try! @strconv.parse_int(s))
     Double(s) => Double(try! @strconv.parse_double(s))
     String(s) => String(s)

@@ -18,7 +18,7 @@ test "example" {
     #|  }
     #|  fact(3)
     #|}
-  let init_func = @parser.parse_string(code).0.head().unwrap()
+  let init_func = @parser.parse_string(code).0.unsafe_head()
   guard init_func is TopFuncDef(decl_body=DeclBody(expr~, ..), ..)
   let vm = VM1::new()
   inspect(vm.eval_top(expr), content="6")

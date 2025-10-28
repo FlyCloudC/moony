@@ -257,7 +257,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
         }
         Label(label) => {
           guard eval(record, env) is Struct(record)
-          record.get(label.name).unwrap()
+          record[label.name]
         }
         Newtype(_) => not_support(loc~)
       }

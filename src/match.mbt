@@ -35,7 +35,7 @@ fn bind_pattern(
       Record(fields~, ..) => {
         guard value is Struct(vals)
         fields.all(pat => {
-          let val = vals.get(pat.label.name).unwrap()
+          let val = vals[pat.label.name]
           acc(pat.pattern, val)
         })
       }
