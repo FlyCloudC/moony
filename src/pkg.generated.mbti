@@ -15,6 +15,8 @@ pub suberror Cont {
   Raise(Value)
   Panic(@basic.Location, msg~ : String)
 }
+fn Cont::output(Self, &Logger) -> Unit // from trait `Show`
+fn Cont::to_string(Self) -> String // from trait `Show`
 impl Show for Cont
 
 // Types and methods
@@ -40,13 +42,42 @@ pub enum Value {
   Enum(String, Array[Value])
   Struct(Map[String, Value])
 }
+fn Value::add(Self, Self) -> Self // from trait `Add`
 #alias("_[_]")
 fn Value::at(Self, Self) -> Self
 fn Value::bool(Bool) -> Self
+fn Value::compare(Self, Self) -> Int // from trait `Compare`
+fn Value::div(Self, Self) -> Self // from trait `Div`
+fn Value::equal(Self, Self) -> Bool // from trait `Eq`
+fn Value::land(Self, Self) -> Self // from trait `BitAnd`
+fn Value::lor(Self, Self) -> Self // from trait `BitOr`
+fn Value::lxor(Self, Self) -> Self // from trait `BitXOr`
+fn Value::mod(Self, Self) -> Self // from trait `Mod`
+fn Value::mul(Self, Self) -> Self // from trait `Mul`
+#deprecated
+fn Value::op_add(Self, Self) -> Self // from trait `Add`
+#deprecated
+fn Value::op_div(Self, Self) -> Self // from trait `Div`
+#deprecated
+fn Value::op_equal(Self, Self) -> Bool // from trait `Eq`
+#deprecated
+fn Value::op_mod(Self, Self) -> Self // from trait `Mod`
+#deprecated
+fn Value::op_mul(Self, Self) -> Self // from trait `Mul`
+#deprecated
+fn Value::op_shl(Self, Int) -> Self // from trait `Shl`
+#deprecated
+fn Value::op_shr(Self, Int) -> Self // from trait `Shr`
+#deprecated
+fn Value::op_sub(Self, Self) -> Self // from trait `Sub`
+fn Value::output(Self, &Logger) -> Unit // from trait `Show`
 #alias("_[_]=_")
 fn Value::set(Self, Self, Self) -> Self
+fn Value::shl(Self, Int) -> Self // from trait `Shl`
+fn Value::shr(Self, Int) -> Self // from trait `Shr`
 #alias("_[_:_]")
 fn Value::sub(Self, start? : Self, end? : Self) -> Self
+fn Value::to_string(Self) -> String // from trait `Show`
 impl Add for Value
 impl BitAnd for Value
 impl BitOr for Value

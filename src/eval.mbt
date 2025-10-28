@@ -50,7 +50,7 @@ fn eval_unary(op_name : String, val : Value) -> Value {
 }
 
 ///|
-fn eval_infix(op_name : @string.View, lhs : Value, rhs : Value) -> Value {
+fn eval_infix(op_name : StringView, lhs : Value, rhs : Value) -> Value {
   match op_name {
     // cmp
     "==" => Value::bool(lhs == rhs)
