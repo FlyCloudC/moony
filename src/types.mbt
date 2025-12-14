@@ -28,7 +28,7 @@ pub suberror Cont {
 } derive(Show)
 
 ///|
-typealias @enviroment.T[String, Value] as Env
+type Env = @enviroment.T[String, Value]
 
 ///|
 pub struct VM1 {

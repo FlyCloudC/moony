@@ -6,23 +6,21 @@ Moony is an AST-based interpreter for a subset of MoonBit. The AST is provided b
 
 ## Usage
 
-```moonbit
-test "example" {
-  let code =
-    #|fn init {
-    #|  fn fact(n) {
-    #|    match n {
-    #|      0 => 1
-    #|      n => fact(n - 1) * n
-    #|    }
-    #|  }
-    #|  fact(3)
-    #|}
-  let init_func = @parser.parse_string(code).0.unsafe_head()
-  guard init_func is TopFuncDef(decl_body=DeclBody(expr~, ..), ..)
-  let vm = VM1::new()
-  inspect(vm.eval_top(expr), content="6")
-}
+```moonbit test
+let code =
+  #|fn init {
+  #|  fn fact(n) {
+  #|    match n {
+  #|      0 => 1
+  #|      n => fact(n - 1) * n
+  #|    }
+  #|  }
+  #|  fact(3)
+  #|}
+let init_func = @parser.parse_string(code).0.unsafe_head()
+guard init_func is TopFuncDef(decl_body=DeclBody(expr~, ..), ..)
+let vm = VM1::new()
+inspect(vm.eval_top(expr), content="6")
 ```
 
 Some examples can be found in [`src/eval_test.mbt`](src/eval_test.mbt).
