@@ -15,19 +15,17 @@ fn eval_interp(
 
 ///|
 fn eval_func(func : @syntax.Func, env : Env) -> Value {
-  match func {
-    Lambda(parameters~, body~, is_async=false, ..) =>
-      Func(
-        name=None,
-        arg_names=parameters.map_to_array(p => {
-          guard p is Positional(binder~, ..) else { not_support(loc=p.loc()) }
-          binder.name
-        }),
-        body~,
-        saved_env=env,
-      )
-    Lambda(is_async=true, loc~, ..) | Match(loc~, ..) => not_support(loc~)
-  }
+  let { parameters, body, is_async, loc, .. } = func
+  guard is_async is None else { not_support(loc~) }
+  Func(
+    name=None,
+    arg_names=parameters.map_to_array(p => {
+      guard p is Positional(binder~, ..) else { not_support(loc=p.loc()) }
+      binder.name
+    }),
+    body~,
+    saved_env=env,
+  )
 }
 
 ///|
@@ -167,6 +165,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       let (body, new_env) = match_(cases, val, env, match_loc)
       eval(body, new_env)
     }
+    LexMatch(loc~, ..) => not_support(loc~)
 
     // Block Control
     Guard(cond~, otherwise~, body~, loc~) =>
@@ -317,6 +316,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     // Other
     Pipe(loc~, ..) => not_support(loc~)
     Is(loc~, ..) => not_support(loc~)
+    IsLexMatch(loc~, ..) => not_support(loc~)
     Hole(loc~, ..) => not_support(loc~)
     StaticAssert(body~, ..) => eval(body, env)
   }

@@ -1,5 +1,7 @@
 {
   "import": [
+    "moonbitlang/core/list",
+    "moonbitlang/core/strconv",
     "moonbitlang/parser/syntax",
     "moonbitlang/parser/basic",
     "FlyCloudC/moony/enviroment"

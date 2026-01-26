@@ -1,12 +1,15 @@
 ///|
+using @hashmap {type HashMap}
+
+///|
 struct T[K, V] {
   parent : T[K, V]?
-  table : @hashmap.HashMap[K, V]
+  table : HashMap[K, V]
 }
 
 ///|
 pub fn[K, V] T::new() -> T[K, V] {
-  { parent: None, table: @hashmap.new() }
+  { parent: None, table: HashMap::new() }
 }
 
 ///|
@@ -14,12 +17,12 @@ pub fn[K : Eq + Hash, V] T::extend(
   self : T[K, V],
   binds : Array[(K, V)],
 ) -> T[K, V] {
-  { parent: Some(self), table: @hashmap.from_array(binds) }
+  { parent: Some(self), table: HashMap::from_array(binds) }
 }
 
 ///|
 pub fn[K, V] T::extend_new(self : T[K, V]) -> T[K, V] {
-  { parent: Some(self), table: @hashmap.new() }
+  { parent: Some(self), table: HashMap::new() }
 }
 
 ///|

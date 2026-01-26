@@ -1,4 +1,7 @@
 ///|
+using @list {type List}
+
+///|
 fn bind_pattern(
   pattern : @syntax.Pattern,
   value : Value,
@@ -50,17 +53,17 @@ fn bind_pattern(
       }
       Constraint(pat~, ..) => acc(pat, value)
       Constant(c~, loc~) => c.to_value(loc) == value
-      Range(lhs~, rhs~, inclusive~, ..) =>
+      Range(lhs~, rhs~, kind~, ..) =>
         (match lhs {
           Constant(c~, loc~) => c.to_value(loc) <= value
           _ => true // lhs is Any
         }) &&
         (match rhs {
           Constant(c~, loc~) =>
-            if inclusive {
-              value <= c.to_value(loc)
-            } else {
+            if kind is Exclusive {
               value < c.to_value(loc)
+            } else {
+              value <= c.to_value(loc)
             }
           _ => true // rhs is Any
         })
@@ -114,7 +117,7 @@ fn bind_pattern(
 
 ///|
 fn match_(
-  cases : @list.List[@syntax.Case],
+  cases : List[@syntax.Case],
   val : Value,
   env : Env,
   loc : @basic.Location,
