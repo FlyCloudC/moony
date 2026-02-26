@@ -21,7 +21,7 @@ fn bind_pattern(
         guard value is Tuple(vals)
         for i, pat in pats {
           guard acc(pat, vals[i]) else { break false }
-        } else {
+        } nobreak {
           true
         }
       }
@@ -31,7 +31,7 @@ fn bind_pattern(
         guard args is Some(args) else { true }
         for i, pat in args {
           guard acc(pat.pat, vals[i]) else { break false }
-        } else {
+        } nobreak {
           true
         }
       }
@@ -46,10 +46,10 @@ fn bind_pattern(
       Or(pat1~, pat2~, ..) => {
         let len_before = binds.length()
         acc(pat1, value) ||
-        {
+        ({
           binds.resize_down(len_before)
           acc(pat2, value)
-        }
+        })
       }
       Constraint(pat~, ..) => acc(pat, value)
       Constant(c~, loc~) => c.to_value(loc) == value
@@ -75,7 +75,7 @@ fn bind_pattern(
             for i, pat in pats {
               guard pat is Pattern(pat) else { not_support(loc~) }
               guard acc(pat, vals[i]) else { break false }
-            } else {
+            } nobreak {
               true
             }
           }
@@ -131,7 +131,7 @@ fn match_(
         break (case.body, new_env)
       }
     }
-  } else {
+  } nobreak {
     VM1::panic(loc, msg="match fail")
   }
 }

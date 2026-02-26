@@ -1,31 +1,29 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "FlyCloudC/moony"
 
-import(
-  "FlyCloudC/moony/enviroment"
-  "moonbitlang/parser/basic"
-  "moonbitlang/parser/syntax"
-)
+import {
+  "FlyCloudC/moony/enviroment",
+  "moonbitlang/parser/basic",
+  "moonbitlang/parser/syntax",
+}
 
 // Values
-fn eval(@syntax.Expr, @enviroment.T[String, Value]) -> Value raise Cont
+pub fn eval(@syntax.Expr, @enviroment.T[String, Value]) -> Value raise Cont
 
 // Errors
 pub suberror Cont {
   Raise(Value)
   Panic(@basic.Location, msg~ : String)
 }
-fn Cont::output(Self, &Logger) -> Unit // from trait `Show`
-fn Cont::to_string(Self) -> String // from trait `Show`
-impl Show for Cont
+pub impl Show for Cont
 
 // Types and methods
 pub struct VM1 {
   global_env : @enviroment.T[String, Value]
 }
-fn VM1::eval(Self, @syntax.Expr) -> Value raise Cont
-fn VM1::eval_top(Self, @syntax.Expr) -> Value raise Cont
-fn VM1::new() -> Self
+pub fn VM1::eval(Self, @syntax.Expr) -> Value raise Cont
+pub fn VM1::eval_top(Self, @syntax.Expr) -> Value raise Cont
+pub fn VM1::new() -> Self
 
 pub enum Value {
   Unit
@@ -42,55 +40,26 @@ pub enum Value {
   Enum(String, Array[Value])
   Struct(Map[String, Value])
 }
-fn Value::add(Self, Self) -> Self // from trait `Add`
 #alias("_[_]")
-fn Value::at(Self, Self) -> Self
-fn Value::bool(Bool) -> Self
-fn Value::compare(Self, Self) -> Int // from trait `Compare`
-fn Value::div(Self, Self) -> Self // from trait `Div`
-fn Value::equal(Self, Self) -> Bool // from trait `Eq`
-fn Value::land(Self, Self) -> Self // from trait `BitAnd`
-fn Value::lor(Self, Self) -> Self // from trait `BitOr`
-fn Value::lxor(Self, Self) -> Self // from trait `BitXOr`
-fn Value::mod(Self, Self) -> Self // from trait `Mod`
-fn Value::mul(Self, Self) -> Self // from trait `Mul`
-#deprecated
-fn Value::op_add(Self, Self) -> Self // from trait `Add`
-#deprecated
-fn Value::op_div(Self, Self) -> Self // from trait `Div`
-#deprecated
-fn Value::op_equal(Self, Self) -> Bool // from trait `Eq`
-#deprecated
-fn Value::op_mod(Self, Self) -> Self // from trait `Mod`
-#deprecated
-fn Value::op_mul(Self, Self) -> Self // from trait `Mul`
-#deprecated
-fn Value::op_shl(Self, Int) -> Self // from trait `Shl`
-#deprecated
-fn Value::op_shr(Self, Int) -> Self // from trait `Shr`
-#deprecated
-fn Value::op_sub(Self, Self) -> Self // from trait `Sub`
-fn Value::output(Self, &Logger) -> Unit // from trait `Show`
+pub fn Value::at(Self, Self) -> Self
+pub fn Value::bool(Bool) -> Self
 #alias("_[_]=_")
-fn Value::set(Self, Self, Self) -> Self
-fn Value::shl(Self, Int) -> Self // from trait `Shl`
-fn Value::shr(Self, Int) -> Self // from trait `Shr`
+pub fn Value::set(Self, Self, Self) -> Self
 #alias("_[_:_]")
-fn Value::sub(Self, start? : Self, end? : Self) -> Self
-fn Value::to_string(Self) -> String // from trait `Show`
-impl Add for Value
-impl BitAnd for Value
-impl BitOr for Value
-impl BitXOr for Value
-impl Compare for Value
-impl Div for Value
-impl Eq for Value
-impl Mod for Value
-impl Mul for Value
-impl Shl for Value
-impl Show for Value
-impl Shr for Value
-impl Sub for Value
+pub fn Value::view(Self, start? : Self, end? : Self) -> Self
+pub impl Add for Value
+pub impl BitAnd for Value
+pub impl BitOr for Value
+pub impl BitXOr for Value
+pub impl Compare for Value
+pub impl Div for Value
+pub impl Eq for Value
+pub impl Mod for Value
+pub impl Mul for Value
+pub impl Shl for Value
+pub impl Show for Value
+pub impl Shr for Value
+pub impl Sub for Value
 
 // Type aliases
 

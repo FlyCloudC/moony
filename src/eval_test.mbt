@@ -14,7 +14,7 @@ fn run(
     parser=Handrolled,
   )
   guard impls is More(TopFuncDef(decl_body=DeclBody(expr~, ..), ..), tail=Empty) else {
-    fail(diagnostics.iter().map(_.to_string()).join("\n"))
+    fail(diagnostics.iter().map(Show::to_string).join("\n"))
   }
   inspect(vm.eval_top(expr), loc~, args_loc~, content~)
 }
@@ -193,13 +193,15 @@ test "match array" {
     "match [1, 2, 3, 4, 5] { [a, b, .. c, d, e] => (a, b, c, d, e) }",
     content="(1, 2, [3], 4, 5)",
   )
-  let m = x => (
-    $|match \{x} {
-    #|  [] => 0
-    #|  [_] => 1
-    #|  [_, ..] => 2
-    $|}
-  )
+  let m = x => {
+    (
+      $|match \{x} {
+      #|  [] => 0
+      #|  [_] => 1
+      #|  [_, ..] => 2
+      $|}
+    )
+  }
   run(m("[]"), content="0")
   run(m("[1]"), content="1")
   run(m("[1, 2]"), content="2")

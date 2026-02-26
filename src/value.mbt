@@ -163,7 +163,7 @@ pub impl Show for Value with output(self, logger) {
         } else {
           logger.write_string(", ")
         }
-        logger..write_string(x.0)..write_string(": ")..write_object(x.1)
+        logger..write_string(x.0)..write_string(": ").write_object(x.1)
       }
       logger.write_char('}')
     }
@@ -217,7 +217,11 @@ pub fn Value::set(self : Value, index : Value, v : Value) -> Value {
 
 ///|
 #alias("_[_:_]")
-pub fn Value::sub(self : Value, start? : Value = Int(0), end? : Value) -> Value {
+pub fn Value::view(
+  self : Value,
+  start? : Value = Int(0),
+  end? : Value,
+) -> Value {
   guard start is Int(start)
   let end = match end {
     None => None
@@ -225,8 +229,8 @@ pub fn Value::sub(self : Value, start? : Value = Int(0), end? : Value) -> Value 
     _ => panic()
   }
   match self {
-    Array(a) => ArrayView(a.sub(start~, end?))
-    ArrayView(a) => ArrayView(a.sub(start~, end?))
+    Array(a) => ArrayView(a.view(start~, end?))
+    ArrayView(a) => ArrayView(a.view(start~, end?))
     String(_) => not_support()
     _ => panic()
   }

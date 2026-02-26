@@ -4,11 +4,13 @@ fn eval_interp(
   env : Env,
 ) -> String raise Cont {
   interp
-  .map_to_array(e => match e {
-    Literal(repr~, ..) => repr
-    Expr(expr~, ..) => eval(expr, env).to_string()
-    // TODO
-    Source(_) => panic()
+  .map_to_array(e => {
+    match e {
+      Literal(repr~, ..) => repr
+      Expr(expr~, ..) => eval(expr, env).to_string()
+      // TODO
+      Source(_) => panic()
+    }
   })
   .join("")
 }
@@ -84,9 +86,11 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
     Interp(elems~, ..) => String(eval_interp(elems, env))
     MultilineString(elems=lines, ..) =>
       lines
-      .map_to_array(line => match line {
-        String(s) => s
-        Interp(i) => eval_interp(i, env)
+      .map_to_array(line => {
+        match line {
+          String(s) => s
+          Interp(i) => eval_interp(i, env)
+        }
       })
       .join("\n")
       |> String
@@ -192,12 +196,13 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       }
 
     // Call
-    Apply(func=Constr(constr~, ..), args~, ..) =>
-      args.map_to_array(arg => {
+    Apply(func=Constr(constr~, ..), args~, ..) => {
+      let fields = args.map_to_array(arg => {
         guard arg.kind is Positional else { not_support(loc=arg.value.loc()) }
         eval(arg.value, env)
       })
-      |> Enum(constr.name.name, _)
+      Enum(constr.name.name, fields)
+    }
     Apply(func~, args~, ..) => {
       guard eval(func, env) is Func(arg_names~, saved_env~, body~, ..)
       let new_env = saved_env.extend_new()
@@ -231,7 +236,7 @@ pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
       array[index] = eval_infix(name, array[index], eval(value, env))
     }
     ArrayGetSlice(array~, start_index~, end_index~, ..) =>
-      eval(array, env).sub(
+      eval(array, env).view(
         start?=match start_index {
           Some(s) => Some(eval(s, env))
           None => None
