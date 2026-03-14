@@ -15,7 +15,7 @@ pub enum Value {
     name~ : String?,
     arg_names~ : Array[String],
     body~ : @syntax.Expr,
-    saved_env~ : Env
+    saved_env~ : Env[String, Value]
   )
   Enum(String, Array[Value])
   Struct(Map[String, Value])
@@ -28,9 +28,9 @@ pub suberror Cont {
 } derive(Show)
 
 ///|
-type Env = @enviroment.T[String, Value]
+using @enviroment {type Env}
 
 ///|
 pub struct VM1 {
-  global_env : Env
+  global_env : Env[String, Value]
 }

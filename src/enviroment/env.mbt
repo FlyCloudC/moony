@@ -2,31 +2,31 @@
 using @hashmap {type HashMap}
 
 ///|
-struct T[K, V] {
-  parent : T[K, V]?
+struct Env[K, V] {
+  parent : Env[K, V]?
   table : HashMap[K, V]
 }
 
 ///|
-pub fn[K, V] T::new() -> T[K, V] {
+pub fn[K, V] Env::new() -> Env[K, V] {
   { parent: None, table: HashMap::new() }
 }
 
 ///|
-pub fn[K : Eq + Hash, V] T::extend(
-  self : T[K, V],
+pub fn[K : Eq + Hash, V] Env::extend(
+  self : Env[K, V],
   binds : Array[(K, V)],
-) -> T[K, V] {
+) -> Env[K, V] {
   { parent: Some(self), table: HashMap::from_array(binds) }
 }
 
 ///|
-pub fn[K, V] T::extend_new(self : T[K, V]) -> T[K, V] {
+pub fn[K, V] Env::extend_new(self : Env[K, V]) -> Env[K, V] {
   { parent: Some(self), table: HashMap::new() }
 }
 
 ///|
-pub fn[K : Eq + Hash, V] T::get(self : T[K, V], name : K) -> V? {
+pub fn[K : Eq + Hash, V] Env::get(self : Env[K, V], name : K) -> V? {
   match self.table.get(name) {
     Some(v) => Some(v)
     None =>
@@ -39,7 +39,7 @@ pub fn[K : Eq + Hash, V] T::get(self : T[K, V], name : K) -> V? {
 
 ///|
 #alias("_[_]")
-pub fn[K : Eq + Hash, V] T::at(self : T[K, V], name : K) -> V {
+pub fn[K : Eq + Hash, V] Env::at(self : Env[K, V], name : K) -> V {
   match self.table.get(name) {
     Some(v) => v
     None => self.parent.unwrap()[name]
@@ -48,7 +48,11 @@ pub fn[K : Eq + Hash, V] T::at(self : T[K, V], name : K) -> V {
 
 ///|
 #alias("_[_]=_")
-pub fn[K : Eq + Hash, V] T::set(self : T[K, V], name : K, value : V) -> Unit {
+pub fn[K : Eq + Hash, V] Env::set(
+  self : Env[K, V],
+  name : K,
+  value : V,
+) -> Unit {
   if self.table.contains(name) {
     self.table[name] = value
   } else {
@@ -57,8 +61,8 @@ pub fn[K : Eq + Hash, V] T::set(self : T[K, V], name : K, value : V) -> Unit {
 }
 
 ///|
-pub fn[K : Eq + Hash, V] T::define_var(
-  self : T[K, V],
+pub fn[K : Eq + Hash, V] Env::define_var(
+  self : Env[K, V],
   name : K,
   value : V,
 ) -> Unit {

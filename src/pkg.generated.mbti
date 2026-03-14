@@ -8,7 +8,7 @@ import {
 }
 
 // Values
-pub fn eval(@syntax.Expr, @enviroment.T[String, Value]) -> Value raise Cont
+pub fn eval(@syntax.Expr, @enviroment.Env[String, Value]) -> Value raise Cont
 
 // Errors
 pub suberror Cont {
@@ -19,7 +19,7 @@ pub impl Show for Cont
 
 // Types and methods
 pub struct VM1 {
-  global_env : @enviroment.T[String, Value]
+  global_env : @enviroment.Env[String, Value]
 }
 pub fn VM1::eval(Self, @syntax.Expr) -> Value raise Cont
 pub fn VM1::eval_top(Self, @syntax.Expr) -> Value raise Cont
@@ -36,7 +36,7 @@ pub enum Value {
   Tuple(Array[Value])
   Array(Array[Value])
   ArrayView(ArrayView[Value])
-  Func(name~ : String?, arg_names~ : Array[String], body~ : @syntax.Expr, saved_env~ : @enviroment.T[String, Value])
+  Func(name~ : String?, arg_names~ : Array[String], body~ : @syntax.Expr, saved_env~ : @enviroment.Env[String, Value])
   Enum(String, Array[Value])
   Struct(Map[String, Value])
 }

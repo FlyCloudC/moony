@@ -1,7 +1,7 @@
 ///|
 fn eval_interp(
   interp : @list.List[@syntax.InterpElem],
-  env : Env,
+  env : Env[String, Value],
 ) -> String raise Cont {
   interp
   .map_to_array(e => {
@@ -16,7 +16,7 @@ fn eval_interp(
 }
 
 ///|
-fn eval_func(func : @syntax.Func, env : Env) -> Value {
+fn eval_func(func : @syntax.Func, env : Env[String, Value]) -> Value {
   let { parameters, body, is_async, loc, .. } = func
   guard is_async is None else { not_support(loc~) }
   Func(
@@ -76,7 +76,7 @@ fn eval_infix(op_name : StringView, lhs : Value, rhs : Value) -> Value {
 }
 
 ///|
-pub fn eval(expr : @syntax.Expr, env : Env) -> Value raise Cont {
+pub fn eval(expr : @syntax.Expr, env : Env[String, Value]) -> Value raise Cont {
   match expr {
     // Constant
     Unit(_) => Unit

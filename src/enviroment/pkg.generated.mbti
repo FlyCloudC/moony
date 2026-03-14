@@ -6,16 +6,16 @@ package "FlyCloudC/moony/enviroment"
 // Errors
 
 // Types and methods
-type T[K, V]
+type Env[K, V]
 #alias("_[_]")
-pub fn[K : Eq + Hash, V] T::at(Self[K, V], K) -> V
-pub fn[K : Eq + Hash, V] T::define_var(Self[K, V], K, V) -> Unit
-pub fn[K : Eq + Hash, V] T::extend(Self[K, V], Array[(K, V)]) -> Self[K, V]
-pub fn[K, V] T::extend_new(Self[K, V]) -> Self[K, V]
-pub fn[K : Eq + Hash, V] T::get(Self[K, V], K) -> V?
-pub fn[K, V] T::new() -> Self[K, V]
+pub fn[K : Eq + Hash, V] Env::at(Self[K, V], K) -> V
+pub fn[K : Eq + Hash, V] Env::define_var(Self[K, V], K, V) -> Unit
+pub fn[K : Eq + Hash, V] Env::extend(Self[K, V], Array[(K, V)]) -> Self[K, V]
+pub fn[K, V] Env::extend_new(Self[K, V]) -> Self[K, V]
+pub fn[K : Eq + Hash, V] Env::get(Self[K, V], K) -> V?
+pub fn[K, V] Env::new() -> Self[K, V]
 #alias("_[_]=_")
-pub fn[K : Eq + Hash, V] T::set(Self[K, V], K, V) -> Unit
+pub fn[K : Eq + Hash, V] Env::set(Self[K, V], K, V) -> Unit
 
 // Type aliases
 

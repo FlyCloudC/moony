@@ -119,9 +119,9 @@ fn bind_pattern(
 fn match_(
   cases : List[@syntax.Case],
   val : Value,
-  env : Env,
+  env : Env[String, Value],
   loc : @basic.Location,
-) -> (@syntax.Expr, Env) raise Cont {
+) -> (@syntax.Expr, Env[String, Value]) raise Cont {
   for case in cases {
     if bind_pattern(case.pattern, val) is Some(binds) {
       let new_env = env.extend(binds)
